@@ -3,11 +3,73 @@
  */
 
 function doGet(e) {
+  // Jika ada parameter payload, tangani sebagai API request
+  if (e && e.parameter && e.parameter.payload) {
+    return handleApiRequest(e.parameter.payload);
+  }
+  
   return HtmlService.createTemplateFromFile('Index')
       .evaluate()
       .setTitle('SIPRAS - Sistem Informasi Sarana Prasarana')
       .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL)
       .addMetaTag('viewport', 'width=device-width, initial-scale=1');
+}
+
+/**
+ * Menangani API request dari client eksternal (luar GAS environment).
+ * Menerima payload JSON: { action: string, params: object }
+ */
+function handleApiRequest(payloadStr) {
+  var output = ContentService.createTextOutput();
+  output.setMimeType(ContentService.MimeType.JSON);
+  
+  try {
+    var payload = JSON.parse(payloadStr);
+    var action = payload.action;
+    var params = payload.params || {};
+    var result;
+    
+    switch (action) {
+      case "readData":
+        result = readData(params.sheetName);
+        break;
+      case "addData":
+        result = addData(params.sheetName, params.item);
+        break;
+      case "updateData":
+        result = updateData(params.sheetName, params.id, params.item);
+        break;
+      case "deleteData":
+        result = deleteData(params.sheetName, params.id);
+        break;
+      case "runSetupFromWeb":
+        result = runSetupFromWeb();
+        break;
+      case "getDatabaseConfig":
+        result = getDatabaseConfig();
+        break;
+      case "saveDatabaseConfig":
+        result = saveDatabaseConfig(params.url);
+        break;
+      case "saveLogoConfig":
+        result = saveLogoConfig(params.url);
+        break;
+      case "verifyAdminPassword":
+        result = verifyAdminPassword(params.password);
+        break;
+      case "changeAdminPassword":
+        result = changeAdminPassword(params.oldPassword, params.newPassword);
+        break;
+      default:
+        throw new Error("Action tidak dikenal: " + action);
+    }
+    
+    output.setContent(JSON.stringify({ result: result }));
+  } catch (e) {
+    output.setContent(JSON.stringify({ error: e.message || e.toString() }));
+  }
+  
+  return output;
 }
 
 /**

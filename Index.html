@@ -650,7 +650,7 @@
       width: 100%;
       max-width: 600px;
       max-height: 85vh;
-      overflow-y: auto;
+      overflow: hidden;
       box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
       transform: scale(0.9);
       transition: var(--transition);
@@ -690,6 +690,15 @@
 
     .modal-body {
       padding: 24px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .modal-container form {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-height: 0;
     }
 
     .modal-footer {
@@ -698,6 +707,7 @@
       display: flex;
       justify-content: flex-end;
       gap: 12px;
+      flex-shrink: 0;
     }
 
     /* Form Fields */
@@ -729,6 +739,11 @@
       background: rgba(255, 255, 255, 0.05);
       border-color: var(--accent-blue);
       box-shadow: 0 0 10px rgba(59, 130, 246, 0.15);
+    }
+
+    .form-control.invalid {
+      border-color: var(--accent-red);
+      box-shadow: 0 0 8px rgba(239, 68, 68, 0.2);
     }
 
     textarea.form-control {
@@ -899,6 +914,91 @@
       }
     }
 
+    /* ── Loading Overlay ── */
+    #loading-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(8, 12, 20, 0.75);
+      backdrop-filter: blur(4px);
+      z-index: 9000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+
+    #loading-overlay.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    /* Ring spinner */
+    .spinner-ring {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      border: 3px solid rgba(255, 255, 255, 0.08);
+      border-top-color: var(--accent-blue);
+      border-right-color: var(--accent-violet);
+      animation: spin 0.9s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Bouncing dots */
+    .loading-dots {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .loading-dots span {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent-blue);
+      animation: bounce-dot 1.2s ease-in-out infinite;
+    }
+
+    .loading-dots span:nth-child(2) {
+      background: var(--accent-violet);
+      animation-delay: 0.2s;
+    }
+
+    .loading-dots span:nth-child(3) {
+      background: var(--accent-emerald);
+      animation-delay: 0.4s;
+    }
+
+    @keyframes bounce-dot {
+      0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+      40%           { transform: scale(1);   opacity: 1;   }
+    }
+
+    .loading-label {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      letter-spacing: 0.5px;
+    }
+
+    /* Inline button spinner */
+    .btn-spinner {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top-color: #fff;
+      animation: spin 0.7s linear infinite;
+      flex-shrink: 0;
+    }
+
     /* Hamburger Menu for Mobile */
     .menu-toggle {
       display: none;
@@ -932,6 +1032,15 @@
   </style>
 </head>
 <body>
+
+  <!-- Global Loading Overlay -->
+  <div id="loading-overlay">
+    <div class="spinner-ring"></div>
+    <div class="loading-dots">
+      <span></span><span></span><span></span>
+    </div>
+    <div class="loading-label" id="loading-label">Memuat data...</div>
+  </div>
 
   <div id="app-container">
     
@@ -1143,7 +1252,7 @@
           <span class="material-symbols-outlined">close</span>
         </button>
       </div>
-      <form id="dynamic-form" onsubmit="handleFormSubmit(event)">
+      <form id="dynamic-form" onsubmit="handleFormSubmit(event)" novalidate>
         <div class="modal-body" id="modal-fields">
           <!-- Form fields rendered dynamically via JS -->
         </div>
@@ -1425,6 +1534,32 @@
       }
     };
 
+    // =====================================================================
+    // API Helper — memanggil Google Apps Script Web App secara langsung
+    // ketika aplikasi dijalankan di luar lingkungan Google Apps Script
+    // =====================================================================
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyh_hxZtKJDoCKtxGYOHa_z_k6jVcuie3kjtc45FpxHxpWpWLznpIVI1AQp19AtdQzh6Q/exec";
+
+    /**
+     * Memanggil fungsi server-side Apps Script via HTTP GET dengan parameter JSON.
+     * @param {string} action - Nama fungsi yang dipanggil (readData, addData, dll.)
+     * @param {object} params - Parameter yang dikirim ke fungsi
+     * @returns {Promise} - Resolve dengan data hasil, reject dengan Error
+     */
+    function callApi(action, params) {
+      const query = encodeURIComponent(JSON.stringify({ action, params }));
+      const url = `${APPS_SCRIPT_URL}?payload=${query}`;
+      return fetch(url)
+        .then(res => {
+          if (!res.ok) throw new Error("HTTP error: " + res.status);
+          return res.json();
+        })
+        .then(json => {
+          if (json && json.error) throw new Error(json.error);
+          return json.result !== undefined ? json.result : json;
+        });
+    }
+
     // App State Caching
     const App = {
       currentMenu: "Lahan",
@@ -1454,8 +1589,10 @@
     }
 
     // Show Loader Spinner on UI
-    function showLoading(state) {
+    function showLoading(state, label) {
       App.isLoading = state;
+
+      // Status dot di topbar
       const indicator = document.getElementById("system-indicator");
       const statusText = document.getElementById("system-status-text");
       if (state) {
@@ -1464,6 +1601,31 @@
       } else {
         indicator.className = "status-dot";
         statusText.innerText = "Connected";
+      }
+
+      // Full-screen overlay
+      const overlay = document.getElementById("loading-overlay");
+      const loadingLabel = document.getElementById("loading-label");
+      if (state) {
+        loadingLabel.innerText = label || "Memuat data...";
+        overlay.classList.add("active");
+      } else {
+        overlay.classList.remove("active");
+      }
+
+      // Tombol Simpan — tampilkan spinner inline saat proses
+      const btnSave = document.getElementById("btn-save");
+      if (btnSave) {
+        if (state) {
+          btnSave.disabled = true;
+          btnSave.dataset.originalHtml = btnSave.innerHTML;
+          btnSave.innerHTML = `<span class="btn-spinner"></span><span>Menyimpan...</span>`;
+        } else {
+          btnSave.disabled = false;
+          if (btnSave.dataset.originalHtml) {
+            btnSave.innerHTML = btnSave.dataset.originalHtml;
+          }
+        }
       }
     }
 
@@ -1522,29 +1684,36 @@
 
     // Retrieve active sheet data
     function loadTableData() {
-      showLoading(true);
+      showLoading(true, "Memuat data...");
       const schema = schemas[App.currentMenu];
       
-      // Safe guard run for Google Apps Script mock environment
-      if (typeof google === "undefined" || !google.script) {
-        showToast("Menjalankan di luar lingkungan Google Apps Script. Menggunakan data simulasi.", "info");
-        simulateDataLoad();
-        showLoading(false);
-        return;
+      // Gunakan API nyata baik di dalam maupun di luar lingkungan Google Apps Script
+      if (typeof google !== "undefined" && google.script) {
+        google.script.run
+          .withSuccessHandler(data => {
+            App.data = data;
+            renderTable();
+            renderStats();
+            showLoading(false);
+          })
+          .withFailureHandler(err => {
+            showToast(err.message || "Gagal mengambil data", "error");
+            showLoading(false);
+          })
+          .readData(schema.sheet);
+      } else {
+        callApi("readData", { sheetName: schema.sheet })
+          .then(data => {
+            App.data = data;
+            renderTable();
+            renderStats();
+            showLoading(false);
+          })
+          .catch(err => {
+            showToast(err.message || "Gagal mengambil data", "error");
+            showLoading(false);
+          });
       }
-
-      google.script.run
-        .withSuccessHandler(data => {
-          App.data = data;
-          renderTable();
-          renderStats();
-          showLoading(false);
-        })
-        .withFailureHandler(err => {
-          showToast(err.message || "Gagal mengambil data", "error");
-          showLoading(false);
-        })
-        .readData(schema.sheet);
     }
 
     // Render Table headers and body dynamically based on schema
@@ -1840,33 +2009,39 @@
         return;
       }
 
-      showLoading(true);
+      showLoading(true, "Memuat opsi pilihan...");
       let loaded = 0;
       dependencies.forEach(dep => {
-        if (typeof google === "undefined" || !google.script) {
-          App.lists[dep] = [{ID: "MOCK-1", "Nama Lahan": "Lahan Utama Mock", "Nama Gedung": "Gedung A Mock"}];
-          loaded++;
-          if (loaded === dependencies.length) {
-            showLoading(false);
-            callback();
-          }
-          return;
-        }
-
-        google.script.run
-          .withSuccessHandler(data => {
-            App.lists[dep] = data;
-            loaded++;
-            if (loaded === dependencies.length) {
+        if (typeof google !== "undefined" && google.script) {
+          google.script.run
+            .withSuccessHandler(data => {
+              App.lists[dep] = data;
+              loaded++;
+              if (loaded === dependencies.length) {
+                showLoading(false);
+                callback();
+              }
+            })
+            .withFailureHandler(err => {
+              showToast(`Gagal memuat data dependensi: ${dep}`, "error");
               showLoading(false);
-              callback();
-            }
-          })
-          .withFailureHandler(err => {
-            showToast(`Gagal memuat data dependensi: ${dep}`, "error");
-            showLoading(false);
-          })
-          .readData(dep);
+            })
+            .readData(dep);
+        } else {
+          callApi("readData", { sheetName: dep })
+            .then(data => {
+              App.lists[dep] = data;
+              loaded++;
+              if (loaded === dependencies.length) {
+                showLoading(false);
+                callback();
+              }
+            })
+            .catch(err => {
+              showToast(`Gagal memuat data dependensi: ${dep}`, "error");
+              showLoading(false);
+            });
+        }
       });
     }
 
@@ -2110,8 +2285,37 @@
       event.preventDefault();
       const form = event.target;
       const schema = schemas[App.currentMenu];
-      
-      showLoading(true);
+
+      // Validasi manual field required
+      let hasError = false;
+      form.querySelectorAll(".field-error").forEach(el => el.remove());
+      form.querySelectorAll(".form-control.invalid").forEach(el => el.classList.remove("invalid"));
+
+      schema.fields.forEach(f => {
+        if (!f.required) return;
+        if (f.type === "checklist") return; // checklist tidak wajib
+        const input = form.querySelector(`[name="${f.name}"]`);
+        if (!input) return;
+        const val = input.value ? input.value.trim() : "";
+        if (!val) {
+          input.classList.add("invalid");
+          const errMsg = document.createElement("span");
+          errMsg.className = "field-error";
+          errMsg.style.cssText = "color: var(--accent-red); font-size: 12px; margin-top: 4px; display: block;";
+          errMsg.innerText = `${f.label} wajib diisi.`;
+          input.parentNode.appendChild(errMsg);
+          hasError = true;
+        }
+      });
+
+      if (hasError) {
+        // Scroll ke field pertama yang error
+        const firstInvalid = form.querySelector(".form-control.invalid");
+        if (firstInvalid) firstInvalid.scrollIntoView({ behavior: "smooth", block: "center" });
+        return;
+      }
+
+      showLoading(true, App.editId ? "Menyimpan perubahan..." : "Menambah data...");
       
       const payload = {};
       
@@ -2131,51 +2335,56 @@
         }
       });
 
-      if (typeof google === "undefined" || !google.script) {
-        // Simulated local submit
+      if (typeof google !== "undefined" && google.script) {
         if (App.editId) {
-          const idx = App.data.findIndex(r => r.ID === App.editId);
-          App.data[idx] = { ...App.data[idx], ...payload };
-          showToast("Data berhasil diperbarui (Simulasi)", "success");
+          google.script.run
+            .withSuccessHandler(res => {
+              showToast("Data berhasil diperbarui!", "success");
+              closeModal();
+              loadTableData();
+            })
+            .withFailureHandler(err => {
+              showToast(err.message || "Gagal memperbarui data", "error");
+              showLoading(false);
+            })
+            .updateData(schema.sheet, App.editId, payload);
         } else {
-          payload.ID = `SIM-${Date.now().toString().slice(-6)}`;
-          payload.Timestamp = new Date().toISOString();
-          App.data.push(payload);
-          showToast("Data berhasil ditambahkan (Simulasi)", "success");
+          google.script.run
+            .withSuccessHandler(res => {
+              showToast("Data berhasil ditambahkan!", "success");
+              closeModal();
+              loadTableData();
+            })
+            .withFailureHandler(err => {
+              showToast(err.message || "Gagal menambah data", "error");
+              showLoading(false);
+            })
+            .addData(schema.sheet, payload);
         }
-        renderTable();
-        renderStats();
-        closeModal();
-        showLoading(false);
-        return;
-      }
-
-      if (App.editId) {
-        // Update record
-        google.script.run
-          .withSuccessHandler(res => {
-            showToast("Data berhasil diperbarui!", "success");
-            closeModal();
-            loadTableData();
-          })
-          .withFailureHandler(err => {
-            showToast(err.message || "Gagal memperbarui data", "error");
-            showLoading(false);
-          })
-          .updateData(schema.sheet, App.editId, payload);
       } else {
-        // Create new record
-        google.script.run
-          .withSuccessHandler(res => {
-            showToast("Data berhasil ditambahkan!", "success");
-            closeModal();
-            loadTableData();
-          })
-          .withFailureHandler(err => {
-            showToast(err.message || "Gagal menambah data", "error");
-            showLoading(false);
-          })
-          .addData(schema.sheet, payload);
+        if (App.editId) {
+          callApi("updateData", { sheetName: schema.sheet, id: App.editId, item: payload })
+            .then(() => {
+              showToast("Data berhasil diperbarui!", "success");
+              closeModal();
+              loadTableData();
+            })
+            .catch(err => {
+              showToast(err.message || "Gagal memperbarui data", "error");
+              showLoading(false);
+            });
+        } else {
+          callApi("addData", { sheetName: schema.sheet, item: payload })
+            .then(() => {
+              showToast("Data berhasil ditambahkan!", "success");
+              closeModal();
+              loadTableData();
+            })
+            .catch(err => {
+              showToast(err.message || "Gagal menambah data", "error");
+              showLoading(false);
+            });
+        }
       }
     }
 
@@ -2185,28 +2394,31 @@
         return;
       }
 
-      showLoading(true);
+      showLoading(true, "Menghapus data...");
       const schema = schemas[App.currentMenu];
 
-      if (typeof google === "undefined" || !google.script) {
-        App.data = App.data.filter(r => r.ID !== id);
-        showToast("Data berhasil dihapus (Simulasi)", "success");
-        renderTable();
-        renderStats();
-        showLoading(false);
-        return;
+      if (typeof google !== "undefined" && google.script) {
+        google.script.run
+          .withSuccessHandler(res => {
+            showToast("Data berhasil dihapus!", "success");
+            loadTableData();
+          })
+          .withFailureHandler(err => {
+            showToast(err.message || "Gagal menghapus data", "error");
+            showLoading(false);
+          })
+          .deleteData(schema.sheet, id);
+      } else {
+        callApi("deleteData", { sheetName: schema.sheet, id: id })
+          .then(() => {
+            showToast("Data berhasil dihapus!", "success");
+            loadTableData();
+          })
+          .catch(err => {
+            showToast(err.message || "Gagal menghapus data", "error");
+            showLoading(false);
+          });
       }
-
-      google.script.run
-        .withSuccessHandler(res => {
-          showToast("Data berhasil dihapus!", "success");
-          loadTableData();
-        })
-        .withFailureHandler(err => {
-          showToast(err.message || "Gagal menghapus data", "error");
-          showLoading(false);
-        })
-        .deleteData(schema.sheet, id);
     }
 
     // Run setup Spreadsheet database sheet structure
@@ -2215,27 +2427,31 @@
         return;
       }
 
-      showLoading(true);
+      showLoading(true, "Menyiapkan database...");
       showToast("Sedang menyiapkan database...", "info");
 
-      if (typeof google === "undefined" || !google.script) {
-        setTimeout(() => {
-          showToast("Simulasi inisialisasi sukses!", "success");
-          showLoading(false);
-        }, 1500);
-        return;
+      if (typeof google !== "undefined" && google.script) {
+        google.script.run
+          .withSuccessHandler(res => {
+            showToast(res || "Database siap digunakan!", "success");
+            loadTableData();
+          })
+          .withFailureHandler(err => {
+            showToast("Gagal melakukan setup: " + err.message, "error");
+            showLoading(false);
+          })
+          .runSetupFromWeb();
+      } else {
+        callApi("runSetupFromWeb", {})
+          .then(res => {
+            showToast(res || "Database siap digunakan!", "success");
+            loadTableData();
+          })
+          .catch(err => {
+            showToast("Gagal melakukan setup: " + err.message, "error");
+            showLoading(false);
+          });
       }
-
-      google.script.run
-        .withSuccessHandler(res => {
-          showToast(res || "Database siap digunakan!", "success");
-          loadTableData();
-        })
-        .withFailureHandler(err => {
-          showToast("Gagal melakukan setup: " + err.message, "error");
-          showLoading(false);
-        })
-        .runSetupFromWeb();
     }
 
     // Open photo URL in large lightbox overlay
@@ -2275,21 +2491,26 @@
       document.getElementById("db-url-input").value = "";
       document.getElementById("settings-modal").classList.add("open");
       
-      if (typeof google === "undefined" || !google.script) {
-        document.getElementById("current-db-display").innerText = "https://docs.google.com/spreadsheets/d/mock-spreadsheet-id/edit (Simulasi)";
-        document.getElementById("db-url-input").value = "";
-        return;
+      if (typeof google !== "undefined" && google.script) {
+        google.script.run
+          .withSuccessHandler(config => {
+            document.getElementById("current-db-display").innerText = config.currentUrl || "Tidak terdeteksi. Silakan atur URL Spreadsheet.";
+            document.getElementById("db-url-input").value = config.customUrl || "";
+          })
+          .withFailureHandler(err => {
+            showToast("Gagal memuat konfigurasi database", "error");
+          })
+          .getDatabaseConfig();
+      } else {
+        callApi("getDatabaseConfig", {})
+          .then(config => {
+            document.getElementById("current-db-display").innerText = config.currentUrl || "Tidak terdeteksi. Silakan atur URL Spreadsheet.";
+            document.getElementById("db-url-input").value = config.customUrl || "";
+          })
+          .catch(() => {
+            showToast("Gagal memuat konfigurasi database", "error");
+          });
       }
-      
-      google.script.run
-        .withSuccessHandler(config => {
-          document.getElementById("current-db-display").innerText = config.currentUrl || "Tidak terdeteksi. Silakan atur URL Spreadsheet.";
-          document.getElementById("db-url-input").value = config.customUrl || "";
-        })
-        .withFailureHandler(err => {
-          showToast("Gagal memuat konfigurasi database", "error");
-        })
-        .getDatabaseConfig();
     }
     
     function closeSettingsModal() {
@@ -2304,38 +2525,50 @@
       const newPass = document.getElementById("new-pass").value;
       const confirmPass = document.getElementById("confirm-pass").value;
       
-      showLoading(true);
+      showLoading(true, "Menyimpan konfigurasi...");
       
       // Helper to save db url and logo url
       const saveConfigs = () => {
-        if (typeof google === "undefined" || !google.script) {
-          showToast("Pengaturan berhasil disimpan (Simulasi)", "success");
-          closeSettingsModal();
-          showLoading(false);
-          return;
-        }
-        
-        google.script.run
-          .withSuccessHandler(() => {
+        const doSave = (saveLogo, saveDb) => {
+          if (typeof google !== "undefined" && google.script) {
             google.script.run
-              .withSuccessHandler(res => {
+              .withSuccessHandler(() => {
+                google.script.run
+                  .withSuccessHandler(res => {
+                    showToast("Pengaturan berhasil disimpan!", "success");
+                    closeSettingsModal();
+                    App.lists = {};
+                    loadSettingsAndLogo();
+                    loadTableData();
+                  })
+                  .withFailureHandler(err => {
+                    showToast(err.message || "Gagal mengubah database", "error");
+                    showLoading(false);
+                  })
+                  .saveDatabaseConfig(url);
+              })
+              .withFailureHandler(err => {
+                showToast("Gagal menyimpan logo: " + err.message, "error");
+                showLoading(false);
+              })
+              .saveLogoConfig(logoUrl);
+          } else {
+            callApi("saveLogoConfig", { url: logoUrl })
+              .then(() => callApi("saveDatabaseConfig", { url: url }))
+              .then(() => {
                 showToast("Pengaturan berhasil disimpan!", "success");
                 closeSettingsModal();
                 App.lists = {};
                 loadSettingsAndLogo();
                 loadTableData();
               })
-              .withFailureHandler(err => {
-                showToast(err.message || "Gagal mengubah database", "error");
+              .catch(err => {
+                showToast(err.message || "Gagal menyimpan pengaturan", "error");
                 showLoading(false);
-              })
-              .saveDatabaseConfig(url);
-          })
-          .withFailureHandler(err => {
-            showToast("Gagal menyimpan logo: " + err.message, "error");
-            showLoading(false);
-          })
-          .saveLogoConfig(logoUrl);
+              });
+          }
+        };
+        doSave();
       };
       
       // Check if trying to change password
@@ -2351,26 +2584,34 @@
           return;
         }
         
-        if (typeof google === "undefined" || !google.script) {
-          showToast("Password admin berhasil diubah (Simulasi)", "success");
-          saveConfigs();
-          return;
+        if (typeof google !== "undefined" && google.script) {
+          google.script.run
+            .withSuccessHandler(() => {
+              showToast("Password admin berhasil diubah!", "success");
+              document.getElementById("old-pass").value = "";
+              document.getElementById("new-pass").value = "";
+              document.getElementById("confirm-pass").value = "";
+              saveConfigs();
+            })
+            .withFailureHandler(err => {
+              showToast("Gagal ganti password: " + err.message, "error");
+              showLoading(false);
+            })
+            .changeAdminPassword(oldPass, newPass);
+        } else {
+          callApi("changeAdminPassword", { oldPassword: oldPass, newPassword: newPass })
+            .then(() => {
+              showToast("Password admin berhasil diubah!", "success");
+              document.getElementById("old-pass").value = "";
+              document.getElementById("new-pass").value = "";
+              document.getElementById("confirm-pass").value = "";
+              saveConfigs();
+            })
+            .catch(err => {
+              showToast("Gagal ganti password: " + err.message, "error");
+              showLoading(false);
+            });
         }
-        
-        google.script.run
-          .withSuccessHandler(() => {
-            showToast("Password admin berhasil diubah!", "success");
-            // Clear password fields
-            document.getElementById("old-pass").value = "";
-            document.getElementById("new-pass").value = "";
-            document.getElementById("confirm-pass").value = "";
-            saveConfigs();
-          })
-          .withFailureHandler(err => {
-            showToast("Gagal ganti password: " + err.message, "error");
-            showLoading(false);
-          })
-          .changeAdminPassword(oldPass, newPass);
       } else {
         saveConfigs();
       }
@@ -2389,27 +2630,25 @@
 
     // Dynamic settings and logo applicator
     function loadSettingsAndLogo() {
-      if (typeof google === "undefined" || !google.script) {
-        const mockLogo = "https://cdn-icons-png.flaticon.com/512/3061/3061341.png";
-        setFavicon(mockLogo);
-        const img = document.getElementById("sidebar-logo-img");
-        img.src = mockLogo;
-        img.style.display = "block";
-        document.getElementById("sidebar-logo-text").style.display = "none";
-        return;
+      const applyLogo = (config) => {
+        if (config && config.logoUrl) {
+          setFavicon(config.logoUrl);
+          const img = document.getElementById("sidebar-logo-img");
+          img.src = config.logoUrl;
+          img.style.display = "block";
+          document.getElementById("sidebar-logo-text").style.display = "none";
+        }
+      };
+
+      if (typeof google !== "undefined" && google.script) {
+        google.script.run
+          .withSuccessHandler(applyLogo)
+          .getDatabaseConfig();
+      } else {
+        callApi("getDatabaseConfig", {})
+          .then(applyLogo)
+          .catch(() => {});
       }
-      
-      google.script.run
-        .withSuccessHandler(config => {
-          if (config.logoUrl) {
-            setFavicon(config.logoUrl);
-            const img = document.getElementById("sidebar-logo-img");
-            img.src = config.logoUrl;
-            img.style.display = "block";
-            document.getElementById("sidebar-logo-text").style.display = "none";
-          }
-        })
-        .getDatabaseConfig();
     }
 
     // Role Toggling controls (Admin vs Guest Mode)
@@ -2480,41 +2719,46 @@
       event.preventDefault();
       const password = document.getElementById("admin-password-input").value;
       
-      showLoading(true);
+      showLoading(true, "Memverifikasi password...");
       
-      if (typeof google === "undefined" || !google.script) {
-        // Simulator login
-        if (password === "admin123") {
-          App.role = "admin";
-          sessionStorage.setItem("sipras_role", "admin");
-          showToast("Login berhasil! Selamat datang Admin (Simulasi).", "success");
-          updateRoleUI();
-          closeLoginModal();
-        } else {
-          showToast("Password salah (Simulasi)!", "error");
-        }
-        showLoading(false);
-        return;
+      if (typeof google !== "undefined" && google.script) {
+        google.script.run
+          .withSuccessHandler(isValid => {
+            if (isValid) {
+              App.role = "admin";
+              sessionStorage.setItem("sipras_role", "admin");
+              showToast("Login Administrator Berhasil!", "success");
+              updateRoleUI();
+              closeLoginModal();
+            } else {
+              showToast("Password salah. Silakan coba lagi.", "error");
+            }
+            showLoading(false);
+          })
+          .withFailureHandler(err => {
+            showToast("Terjadi kesalahan: " + err.message, "error");
+            showLoading(false);
+          })
+          .verifyAdminPassword(password);
+      } else {
+        callApi("verifyAdminPassword", { password: password })
+          .then(isValid => {
+            if (isValid) {
+              App.role = "admin";
+              sessionStorage.setItem("sipras_role", "admin");
+              showToast("Login Administrator Berhasil!", "success");
+              updateRoleUI();
+              closeLoginModal();
+            } else {
+              showToast("Password salah. Silakan coba lagi.", "error");
+            }
+            showLoading(false);
+          })
+          .catch(err => {
+            showToast("Terjadi kesalahan: " + err.message, "error");
+            showLoading(false);
+          });
       }
-      
-      google.script.run
-        .withSuccessHandler(isValid => {
-          if (isValid) {
-            App.role = "admin";
-            sessionStorage.setItem("sipras_role", "admin");
-            showToast("Login Administrator Berhasil!", "success");
-            updateRoleUI();
-            closeLoginModal();
-          } else {
-            showToast("Password salah. Silakan coba lagi.", "error");
-          }
-          showLoading(false);
-        })
-        .withFailureHandler(err => {
-          showToast("Terjadi kesalahan: " + err.message, "error");
-          showLoading(false);
-        })
-        .verifyAdminPassword(password);
     }
   </script>
 </body>
