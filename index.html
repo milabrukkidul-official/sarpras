@@ -1,0 +1,2787 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>SIPRAS - Sistem Informasi Sarana Prasarana</title>
+  <!-- Google Fonts & Material Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
+  
+  <style>
+    /* Premium CSS Design System */
+    :root {
+      --bg-color: #080c14;
+      --bg-gradient: radial-gradient(circle at top right, #111a2e, #080c14);
+      --panel-bg: rgba(15, 23, 42, 0.6);
+      --panel-border: rgba(255, 255, 255, 0.08);
+      --panel-glow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      
+      --accent-blue: #3b82f6;
+      --accent-blue-rgb: 59, 130, 246;
+      --accent-emerald: #10b981;
+      --accent-emerald-rgb: 16, 185, 129;
+      --accent-violet: #8b5cf6;
+      --accent-orange: #f97316;
+      --accent-red: #ef4444;
+      
+      --sidebar-width: 280px;
+      --sidebar-collapsed-width: 80px;
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Outfit', sans-serif;
+    }
+
+    body {
+      background: var(--bg-color);
+      background-image: var(--bg-gradient);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+      display: flex;
+    }
+
+    /* Scrollbar Style */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.02);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    /* Layout Wrapper */
+    #app-container {
+      display: flex;
+      width: 100%;
+      min-height: 100vh;
+    }
+
+    /* Sidebar Styling */
+    aside {
+      width: var(--sidebar-width);
+      background: rgba(10, 15, 30, 0.8);
+      backdrop-filter: blur(20px);
+      border-right: 1px solid var(--panel-border);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 100;
+      transition: var(--transition);
+    }
+
+    .sidebar-header {
+      padding: 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid var(--panel-border);
+    }
+
+    .sidebar-logo {
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-violet));
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 20px;
+      box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
+    }
+
+    .sidebar-title {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      background: linear-gradient(to right, #ffffff, var(--text-secondary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .sidebar-menu {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px 12px;
+    }
+
+    /* Accordion Menu Group */
+    .menu-group {
+      margin-bottom: 16px;
+    }
+
+    .menu-group-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-radius: 8px;
+      transition: var(--transition);
+    }
+
+    .menu-group-header:hover {
+      color: var(--text-secondary);
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .menu-group-header .header-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .menu-group-header .header-left .material-symbols-outward {
+      font-size: 16px;
+    }
+
+    .menu-group-header .toggle-icon {
+      font-size: 16px;
+      transition: var(--transition);
+    }
+
+    .menu-group.collapsed .toggle-icon {
+      transform: rotate(-90deg);
+    }
+
+    .menu-group-items {
+      max-height: 1000px;
+      overflow: hidden;
+      transition: max-height 0.5s ease-in-out;
+      padding-top: 4px;
+    }
+
+    .menu-group.collapsed .menu-group-items {
+      max-height: 0;
+    }
+
+    .menu-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 16px;
+      color: var(--text-secondary);
+      text-decoration: none;
+      border-radius: 8px;
+      margin-bottom: 4px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .menu-item:hover {
+      color: var(--text-primary);
+      background: rgba(255, 255, 255, 0.05);
+      transform: translateX(4px);
+    }
+
+    .menu-item.active {
+      color: var(--text-primary);
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(139, 92, 246, 0.15));
+      border-left: 3px solid var(--accent-blue);
+      box-shadow: inset 0 0 10px rgba(59, 130, 246, 0.05);
+    }
+
+    .menu-item span.icon {
+      font-size: 18px;
+    }
+
+    /* Main Area Styling */
+    main {
+      flex: 1;
+      margin-left: var(--sidebar-width);
+      padding: 30px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      transition: var(--transition);
+      width: calc(100% - var(--sidebar-width));
+    }
+
+    /* Top Bar Styling */
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--panel-bg);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--panel-border);
+      padding: 16px 24px;
+      border-radius: 16px;
+      box-shadow: var(--panel-glow);
+    }
+
+    .breadcrumbs {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    .breadcrumbs span.separator {
+      color: var(--text-muted);
+    }
+
+    .breadcrumbs span.active {
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+
+    .status-panel {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .btn-setup {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--panel-border);
+      color: var(--text-primary);
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: var(--transition);
+    }
+
+    .btn-setup:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: var(--accent-blue);
+    }
+
+    .system-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--text-secondary);
+      background: rgba(255, 255, 255, 0.02);
+      padding: 6px 12px;
+      border-radius: 20px;
+      border: 1px solid var(--panel-border);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--accent-emerald);
+      border-radius: 50%;
+      box-shadow: 0 0 10px var(--accent-emerald);
+    }
+
+    .status-dot.loading {
+      background: var(--accent-orange);
+      box-shadow: 0 0 10px var(--accent-orange);
+      animation: pulse 1.5s infinite;
+    }
+
+    /* Stats Cards Row */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px;
+    }
+
+    .stat-card {
+      background: var(--panel-bg);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--panel-border);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: var(--panel-glow);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: var(--transition);
+    }
+
+    .stat-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+
+    .stat-info {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .stat-title {
+      font-size: 13px;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .stat-value {
+      font-size: 24px;
+      font-weight: 700;
+    }
+
+    .stat-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+    }
+
+    .icon-blue { background: rgba(59, 130, 246, 0.15); color: var(--accent-blue); }
+    .icon-emerald { background: rgba(16, 185, 129, 0.15); color: var(--accent-emerald); }
+    .icon-violet { background: rgba(139, 92, 246, 0.15); color: var(--accent-violet); }
+    .icon-orange { background: rgba(249, 115, 22, 0.15); color: var(--accent-orange); }
+
+    /* Content Card */
+    .content-card {
+      background: var(--panel-bg);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--panel-border);
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: var(--panel-glow);
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .content-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .content-title-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .content-title {
+      font-size: 22px;
+      font-weight: 700;
+    }
+
+    .badge-count {
+      background: rgba(59, 130, 246, 0.1);
+      border: 1px solid rgba(59, 130, 246, 0.2);
+      color: var(--accent-blue);
+      padding: 2px 10px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .content-actions {
+      display: flex;
+      gap: 12px;
+    }
+
+    .btn {
+      padding: 10px 18px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: var(--transition);
+      border: none;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-violet));
+      color: #ffffff;
+      box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+    }
+
+    .btn-primary:hover {
+      box-shadow: 0 6px 20px rgba(59, 130, 246, 0.45);
+      transform: translateY(-2px);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--panel-border);
+      color: var(--text-primary);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    /* Filter & Search Bar */
+    .filter-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .search-wrapper {
+      position: relative;
+      flex: 1;
+      min-width: 250px;
+    }
+
+    .search-input {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--panel-border);
+      padding: 12px 16px 12px 42px;
+      border-radius: 10px;
+      color: var(--text-primary);
+      font-size: 14px;
+      outline: none;
+      transition: var(--transition);
+    }
+
+    .search-input:focus {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 10px rgba(59, 130, 246, 0.15);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      font-size: 20px;
+      pointer-events: none;
+    }
+
+    /* Table Styling */
+    .table-container {
+      width: 100%;
+      overflow-x: auto;
+      border-radius: 12px;
+      border: 1px solid var(--panel-border);
+      background: rgba(0, 0, 0, 0.1);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    th {
+      background: rgba(255, 255, 255, 0.02);
+      padding: 16px;
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-secondary);
+      border-bottom: 1px solid var(--panel-border);
+    }
+
+    td {
+      padding: 16px;
+      font-size: 14px;
+      color: var(--text-primary);
+      border-bottom: 1px solid var(--panel-border);
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.01);
+    }
+
+    /* Image Preview */
+    .table-img {
+      width: 48px;
+      height: 48px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 1px solid var(--panel-border);
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .table-img:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 10px rgba(59, 130, 246, 0.2);
+    }
+
+    .img-placeholder {
+      width: 48px;
+      height: 48px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px dashed var(--panel-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+    }
+
+    .img-placeholder span {
+      font-size: 20px;
+    }
+
+    /* Action Buttons inside Table */
+    .actions-cell {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      border: 1px solid var(--panel-border);
+      background: rgba(255, 255, 255, 0.02);
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .btn-icon:hover {
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .btn-icon.edit:hover {
+      color: var(--accent-blue);
+      border-color: rgba(59, 130, 246, 0.3);
+      background: rgba(59, 130, 246, 0.1);
+    }
+
+    .btn-icon.delete:hover {
+      color: var(--accent-red);
+      border-color: rgba(239, 68, 68, 0.3);
+      background: rgba(239, 68, 68, 0.1);
+    }
+
+    .btn-icon span {
+      font-size: 18px;
+    }
+
+    /* Empty state */
+    .empty-state {
+      padding: 48px 0;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      color: var(--text-secondary);
+    }
+
+    .empty-icon {
+      font-size: 48px;
+      color: var(--text-muted);
+    }
+
+    /* Modal Styling */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(6px);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: var(--transition);
+    }
+
+    .modal-overlay.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .modal-container {
+      background: #0f172a;
+      border: 1px solid var(--panel-border);
+      border-radius: 20px;
+      width: 100%;
+      max-width: 600px;
+      max-height: 85vh;
+      overflow: hidden;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+      transform: scale(0.9);
+      transition: var(--transition);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .modal-overlay.open .modal-container {
+      transform: scale(1);
+    }
+
+    .modal-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--panel-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-title {
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .modal-close {
+      cursor: pointer;
+      color: var(--text-secondary);
+      background: none;
+      border: none;
+      display: flex;
+      align-items: center;
+    }
+
+    .modal-close:hover {
+      color: var(--text-primary);
+    }
+
+    .modal-body {
+      padding: 24px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .modal-container form {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-height: 0;
+    }
+
+    .modal-footer {
+      padding: 16px 24px;
+      border-top: 1px solid var(--panel-border);
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+
+    /* Form Fields */
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--text-secondary);
+    }
+
+    .form-control {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--panel-border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: var(--text-primary);
+      font-size: 14px;
+      outline: none;
+      transition: var(--transition);
+    }
+
+    /* Dropdown select — paksa warna teks & background agar konsisten di semua browser */
+    select.form-control {
+      color: var(--text-primary);
+      background-color: #0f172a;
+      cursor: pointer;
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 36px;
+    }
+
+    select.form-control option {
+      background-color: #0f172a;
+      color: var(--text-primary);
+    }
+
+    select.form-control option:disabled {
+      color: var(--text-muted);
+    }
+
+    .form-control:focus {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 10px rgba(59, 130, 246, 0.15);
+    }
+
+    .form-control.invalid {
+      border-color: var(--accent-red);
+      box-shadow: 0 0 8px rgba(239, 68, 68, 0.2);
+    }
+
+    textarea.form-control {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    /* Checklist source air style */
+    .checklist-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--panel-border);
+      padding: 14px;
+      border-radius: 8px;
+    }
+
+    .checklist-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--text-secondary);
+      cursor: pointer;
+    }
+
+    .checklist-item input[type="checkbox"] {
+      cursor: pointer;
+      accent-color: var(--accent-blue);
+    }
+
+    /* Image Preview in Modal */
+    .url-preview-box {
+      margin-top: 10px;
+      display: none;
+      align-items: center;
+      gap: 12px;
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--panel-border);
+      border-radius: 8px;
+    }
+
+    .url-preview-img {
+      width: 60px;
+      height: 60px;
+      object-fit: cover;
+      border-radius: 6px;
+      border: 1px solid var(--panel-border);
+    }
+
+    .url-preview-text {
+      font-size: 12px;
+      color: var(--text-muted);
+      word-break: break-all;
+    }
+
+    /* Image Lightbox Modal */
+    .lightbox-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.9);
+      backdrop-filter: blur(8px);
+      z-index: 2000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: var(--transition);
+    }
+
+    .lightbox-overlay.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .lightbox-img {
+      max-width: 90%;
+      max-height: 80%;
+      border-radius: 12px;
+      box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
+      transform: scale(0.9);
+      transition: var(--transition);
+    }
+
+    .lightbox-overlay.open .lightbox-img {
+      transform: scale(1);
+    }
+
+    /* Floating Toasts */
+    #toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 10000;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .toast {
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid var(--panel-border);
+      backdrop-filter: blur(10px);
+      padding: 14px 20px;
+      border-radius: 10px;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: var(--panel-glow);
+      transform: translateY(20px);
+      opacity: 0;
+      animation: slideIn 0.3s forwards cubic-bezier(0.4, 0, 0.2, 1);
+      font-size: 14px;
+      min-width: 250px;
+    }
+
+    .toast.success {
+      border-left: 4px solid var(--accent-emerald);
+    }
+
+    .toast.success span.icon {
+      color: var(--accent-emerald);
+    }
+
+    .toast.error {
+      border-left: 4px solid var(--accent-red);
+    }
+
+    .toast.error span.icon {
+      color: var(--accent-red);
+    }
+
+    .toast.info {
+      border-left: 4px solid var(--accent-blue);
+    }
+
+    .toast.info span.icon {
+      color: var(--accent-blue);
+    }
+
+    /* Animations */
+    @keyframes slideIn {
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        opacity: 1;
+      }
+      50% {
+        opacity: 0.5;
+      }
+    }
+
+    /* ── Loading Overlay ── */
+    #loading-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(8, 12, 20, 0.75);
+      backdrop-filter: blur(4px);
+      z-index: 9000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+
+    #loading-overlay.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    /* Ring spinner */
+    .spinner-ring {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      border: 3px solid rgba(255, 255, 255, 0.08);
+      border-top-color: var(--accent-blue);
+      border-right-color: var(--accent-violet);
+      animation: spin 0.9s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Bouncing dots */
+    .loading-dots {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .loading-dots span {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent-blue);
+      animation: bounce-dot 1.2s ease-in-out infinite;
+    }
+
+    .loading-dots span:nth-child(2) {
+      background: var(--accent-violet);
+      animation-delay: 0.2s;
+    }
+
+    .loading-dots span:nth-child(3) {
+      background: var(--accent-emerald);
+      animation-delay: 0.4s;
+    }
+
+    @keyframes bounce-dot {
+      0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+      40%           { transform: scale(1);   opacity: 1;   }
+    }
+
+    .loading-label {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      letter-spacing: 0.5px;
+    }
+
+    /* Inline button spinner */
+    .btn-spinner {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top-color: #fff;
+      animation: spin 0.7s linear infinite;
+      flex-shrink: 0;
+    }
+
+    /* Hamburger Menu for Mobile */
+    .menu-toggle {
+      display: none;
+      background: none;
+      border: none;
+      color: var(--text-primary);
+      cursor: pointer;
+    }
+
+    /* Mobile Responsive Rules */
+    @media (max-width: 992px) {
+      aside {
+        transform: translateX(-100%);
+      }
+      aside.open {
+        transform: translateX(0);
+      }
+      main {
+        margin-left: 0;
+        width: 100%;
+        padding: 20px;
+      }
+      .menu-toggle {
+        display: block;
+      }
+      .form-row {
+        grid-template-columns: 1fr;
+        gap: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Global Loading Overlay -->
+  <div id="loading-overlay">
+    <div class="spinner-ring"></div>
+    <div class="loading-dots">
+      <span></span><span></span><span></span>
+    </div>
+    <div class="loading-label" id="loading-label">Memuat data...</div>
+  </div>
+
+  <div id="app-container">
+    
+    <!-- Sidebar -->
+    <aside id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo" id="sidebar-logo-text">SP</div>
+        <img id="sidebar-logo-img" src="" style="width: 40px; height: 40px; border-radius: 10px; object-fit: cover; display: none;" onerror="this.style.display='none'; document.getElementById('sidebar-logo-text').style.display='flex';">
+        <div class="sidebar-title">SIPRAS</div>
+        <button class="menu-toggle" onclick="toggleSidebar()">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      
+      <div class="sidebar-menu">
+        <!-- Menu Utama 1: Aset Tetap -->
+        <div class="menu-group" id="group-tetap">
+          <div class="menu-group-header" onclick="toggleGroup('tetap')">
+            <span class="header-left">
+              <span class="material-symbols-outlined">apartment</span>
+              <span>Aset Tetap</span>
+            </span>
+            <span class="material-symbols-outlined toggle-icon">expand_more</span>
+          </div>
+          <div class="menu-group-items">
+            <div class="menu-item active" onclick="switchMenu('Lahan')">
+              <span class="material-symbols-outlined icon">landscape</span>
+              <span>Lahan</span>
+            </div>
+            <div class="menu-item" onclick="switchMenu('Gedung')">
+              <span class="material-symbols-outlined icon">corporate_fare</span>
+              <span>Gedung</span>
+            </div>
+            <div class="menu-item" onclick="switchMenu('Ruangan')">
+              <span class="material-symbols-outlined icon">meeting_room</span>
+              <span>Ruangan</span>
+            </div>
+            <div class="menu-item" onclick="switchMenu('AirSanitasi')">
+              <span class="material-symbols-outlined icon">water_drop</span>
+              <span>Air Sanitasi</span>
+            </div>
+            <div class="menu-item" onclick="switchMenu('Mebel')">
+              <span class="material-symbols-outlined icon">chair</span>
+              <span>Mebel</span>
+            </div>
+            <div class="menu-item" onclick="switchMenu('PerlengkapanPenunjang')">
+              <span class="material-symbols-outlined icon">construction</span>
+              <span>Perlengkapan Penunjang</span>
+            </div>
+            <div class="menu-item" onclick="switchMenu('OlahRagaSeni')">
+              <span class="material-symbols-outlined icon">sports_basketball</span>
+              <span>Olah Raga & Seni</span>
+            </div>
+            <div class="menu-item" onclick="switchMenu('PerlengkapanLaboratorium')">
+              <span class="material-symbols-outlined icon">science</span>
+              <span>Laboratorium</span>
+            </div>
+            <div class="menu-item" onclick="switchMenu('FasilitasKeterampilan')">
+              <span class="material-symbols-outlined icon">handyman</span>
+              <span>Keterampilan</span>
+            </div>
+            <div class="menu-item" onclick="switchMenu('ListrikInternet')">
+              <span class="material-symbols-outlined icon">bolt</span>
+              <span>Listrik & Internet</span>
+            </div>
+            <div class="menu-item" onclick="switchMenu('KebutuhanTambahan')">
+              <span class="material-symbols-outlined icon">playlist_add</span>
+              <span>Kebutuhan Tambahan</span>
+            </div>
+            <div class="menu-item" onclick="switchMenu('SaranaPembelajaran')">
+              <span class="material-symbols-outlined icon">school</span>
+              <span>Pembelajaran</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Menu Utama 2: Aset Lancar -->
+        <div class="menu-group" id="group-lancar">
+          <div class="menu-group-header" onclick="toggleGroup('lancar')">
+            <span class="header-left">
+              <span class="material-symbols-outlined">inventory</span>
+              <span>Aset Lancar</span>
+            </span>
+            <span class="material-symbols-outlined toggle-icon">expand_more</span>
+          </div>
+          <div class="menu-group-items">
+            <div class="menu-item" onclick="switchMenu('SaranaAdministrasi')">
+              <span class="material-symbols-outlined icon">folder_shared</span>
+              <span>Administrasi</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Menu Utama 3: Sarana Perpustakaan -->
+        <div class="menu-group" id="group-perpus">
+          <div class="menu-group-header" onclick="toggleGroup('perpus')">
+            <span class="header-left">
+              <span class="material-symbols-outlined">local_library</span>
+              <span>Perpustakaan</span>
+            </span>
+            <span class="material-symbols-outlined toggle-icon">expand_more</span>
+          </div>
+          <div class="menu-group-items">
+            <div class="menu-item" onclick="switchMenu('SaranaPerpustakaan')">
+              <span class="material-symbols-outlined icon">menu_book</span>
+              <span>Sarana Perpustakaan</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main>
+      
+      <!-- Topbar -->
+      <header class="topbar">
+        <div style="display:flex; align-items:center; gap: 12px;">
+          <button class="menu-toggle" onclick="toggleSidebar()" style="display:flex; align-items:center;">
+            <span class="material-symbols-outlined">menu</span>
+          </button>
+          <div class="breadcrumbs">
+            <span id="breadcrumb-parent">Aset Tetap</span>
+            <span class="separator">&gt;</span>
+            <span class="active" id="breadcrumb-active">Lahan</span>
+          </div>
+        </div>
+        
+        <div class="status-panel">
+          <!-- Role Badge & Control -->
+          <div id="role-badge-container" style="display: flex; align-items: center; gap: 8px; margin-right: 8px;">
+            <span id="role-badge" style="font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 12px; display: flex; align-items: center; gap: 4px;">
+              Tamu
+            </span>
+            <button id="btn-role-action" onclick="toggleRoleAction()" class="btn-setup" style="padding: 6px 12px; font-size: 12px; border-color: rgba(59, 130, 246, 0.2);">
+              Login Admin
+            </button>
+          </div>
+          <button class="btn-setup admin-only" onclick="openSettingsModal()" style="border-color: rgba(139, 92, 246, 0.3); background: rgba(139, 92, 246, 0.05); display: none;">
+            <span class="material-symbols-outlined">database</span>
+            <span>Database Config</span>
+          </button>
+          <button class="btn-setup admin-only" onclick="triggerDbSetup()" style="display: none;">
+            <span class="material-symbols-outlined">settings</span>
+            <span>Setup/Repair DB</span>
+          </button>
+          <div class="system-status">
+            <span class="status-dot" id="system-indicator"></span>
+            <span id="system-status-text">Connected</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- Stats Cards -->
+      <section class="stats-row" id="stats-section">
+        <!-- Rendered dynamically via javascript -->
+      </section>
+
+      <!-- Dynamic Data Table Card -->
+      <section class="content-card">
+        <div class="content-header">
+          <div class="content-title-wrapper">
+            <h1 class="content-title" id="view-title">Lahan</h1>
+            <span class="badge-count" id="item-count">0 records</span>
+          </div>
+          <div class="content-actions">
+            <button class="btn btn-secondary" onclick="loadTableData()">
+              <span class="material-symbols-outlined">refresh</span>
+              <span>Refresh</span>
+            </button>
+            <button class="btn btn-primary admin-only" onclick="openAddModal()" style="display: none;">
+              <span class="material-symbols-outlined">add</span>
+              <span>Tambah Data</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="filter-bar">
+          <div class="search-wrapper">
+            <span class="material-symbols-outlined search-icon">search</span>
+            <input type="text" class="search-input" id="search-input" placeholder="Cari data..." oninput="handleSearch(this.value)">
+          </div>
+        </div>
+
+        <!-- Table -->
+        <div class="table-container">
+          <table id="data-table">
+            <thead>
+              <tr id="table-headers">
+                <!-- Rendered dynamically -->
+              </tr>
+            </thead>
+            <tbody id="table-body">
+              <!-- Rendered dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Dynamic Add/Edit Modal -->
+  <div class="modal-overlay" id="form-modal">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h2 class="modal-title" id="modal-title">Tambah Data</h2>
+        <button class="modal-close" onclick="closeModal()">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <form id="dynamic-form" onsubmit="handleFormSubmit(event)" novalidate>
+        <div class="modal-body" id="modal-fields">
+          <!-- Form fields rendered dynamically via JS -->
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal()">Batal</button>
+          <button type="submit" class="btn btn-primary" id="btn-save">Simpan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Settings Database Modal -->
+  <div class="modal-overlay" id="settings-modal">
+    <div class="modal-container" style="max-width: 500px;">
+      <div class="modal-header">
+        <h2 class="modal-title">Konfigurasi Database Spreadsheet</h2>
+        <button class="modal-close" onclick="closeSettingsModal()">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <form id="settings-form" onsubmit="handleSettingsSubmit(event)">
+        <div class="modal-body">
+          <div class="form-group">
+            <label>URL / ID Spreadsheet Terhubung Saat Ini</label>
+            <div id="current-db-display" style="font-size: 13px; color: var(--text-secondary); background: rgba(255,255,255,0.02); padding: 10px; border: 1px solid var(--panel-border); border-radius: 6px; word-break: break-all; margin-bottom: 12px; line-height: 1.5;">
+              Memuat...
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="db-url-input">Ganti URL atau ID Spreadsheet Baru</label>
+            <input type="text" class="form-control" id="db-url-input" placeholder="https://docs.google.com/spreadsheets/d/... / ID">
+            <span style="font-size: 11px; color: var(--text-muted); display: block; margin-top: 6px;">
+              * Kosongkan lalu simpan jika ingin kembali menggunakan Spreadsheet bawaan yang terikat (container-bound).
+            </span>
+          </div>
+          <div class="form-group">
+            <label for="logo-url-input">URL Logo Aplikasi (Favicon)</label>
+            <input type="text" class="form-control" id="logo-url-input" placeholder="https://.../logo.png">
+            <span style="font-size: 11px; color: var(--text-muted); display: block; margin-top: 6px;">
+              * URL gambar ini akan digunakan sebagai logo sidebar dan favicon web.
+            </span>
+          </div>
+          
+          <hr style="border: 0; border-top: 1px solid var(--panel-border); margin: 20px 0;">
+          <h3 style="font-size: 14px; font-weight: 600; margin-bottom: 12px; color: var(--text-primary);">Ganti Password Admin</h3>
+          <div class="form-group">
+            <label for="old-pass">Password Lama</label>
+            <input type="password" class="form-control" id="old-pass" placeholder="Password lama">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="new-pass">Password Baru</label>
+              <input type="password" class="form-control" id="new-pass" placeholder="Minimal 4 karakter">
+            </div>
+            <div class="form-group">
+              <label for="confirm-pass">Konfirmasi Password</label>
+              <input type="password" class="form-control" id="confirm-pass" placeholder="Ulangi password">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeSettingsModal()">Batal</button>
+          <button type="submit" class="btn btn-primary">Simpan Konfigurasi</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Login Modal -->
+  <div class="modal-overlay" id="login-modal">
+    <div class="modal-container" style="max-width: 400px;">
+      <div class="modal-header">
+        <h2 class="modal-title">Login Administrator</h2>
+        <button class="modal-close" onclick="closeLoginModal()">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <form id="login-form" onsubmit="handleLoginSubmit(event)">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="admin-password-input">Masukkan Password Admin</label>
+            <input type="password" class="form-control" id="admin-password-input" placeholder="Password" required>
+            <span style="font-size: 11px; color: var(--text-muted); display: block; margin-top: 6px;">
+              * Password bawaan (default) adalah: <strong>admin123</strong>
+            </span>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeLoginModal()">Batal</button>
+          <button type="submit" class="btn btn-primary">Login</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Lightbox Modal for Full Image View -->
+  <div class="lightbox-overlay" id="lightbox-modal" onclick="closeLightbox()">
+    <img src="" class="lightbox-img" id="lightbox-img" alt="Lightbox Preview">
+  </div>
+
+  <!-- Floating Toast Notifications Container -->
+  <div id="toast-container"></div>
+
+  <!-- Client-side Logic Script -->
+  <script>
+    // Schema definitions matching setup.gs structure
+    const schemas = {
+      Lahan: {
+        title: "Lahan",
+        parentMenu: "Aset Tetap",
+        sheet: "Lahan",
+        fields: [
+          { name: "Nama Lahan", label: "Nama Lahan", type: "text", required: true },
+          { name: "Sertifikat", label: "Sertifikat (Luas m² / Jumlah)", type: "number", required: true },
+          { name: "Belum Sertifikat", label: "Belum Sertifikat (Luas m² / Jumlah)", type: "number", required: true },
+          { name: "Total", label: "Total Luas / Jumlah", type: "number", required: true, readonly: true },
+          { name: "Keterangan", label: "Keterangan", type: "textarea", required: false }
+        ]
+      },
+      Gedung: {
+        title: "Gedung",
+        parentMenu: "Aset Tetap",
+        sheet: "Gedung",
+        fields: [
+          { name: "Nama Lahan", label: "Nama Lahan", type: "select", optionsSource: "Lahan", required: true },
+          { name: "Nama Gedung", label: "Nama Gedung", type: "text", required: true },
+          { name: "Jumlah Lantai", label: "Jumlah Lantai", type: "number", required: true },
+          { name: "Tahun Dibangun", label: "Tahun Dibangun", type: "number", required: true },
+          { name: "Ukuran Panjang (m)", label: "Ukuran Panjang (m)", type: "number", required: true },
+          { name: "Ukuran Lebar (m)", label: "Ukuran Lebar (m)", type: "number", required: true },
+          { name: "URL Foto", label: "URL Foto", type: "url", required: false }
+        ]
+      },
+      Ruangan: {
+        title: "Ruangan",
+        parentMenu: "Aset Tetap",
+        sheet: "Ruangan",
+        fields: [
+          { name: "Nama Gedung", label: "Nama Gedung", type: "select", optionsSource: "Gedung", required: true },
+          { name: "Jenis Ruangan", label: "Jenis Ruangan", type: "select", options: [
+            "Ruang Kelas", "Ruang Kepala", "Ruang Guru", "Ruang Tata Usaha", "Ruang Laboratorium", "Ruang UKS", "Ruang BK", "Ruang Osis", "Aula"
+          ], required: true },
+          { name: "Nama Ruangan", label: "Nama Ruangan", type: "text", required: true },
+          { name: "Keterangan", label: "Keterangan", type: "textarea", required: false }
+        ]
+      },
+      AirSanitasi: {
+        title: "Air Sanitasi",
+        parentMenu: "Aset Tetap",
+        sheet: "AirSanitasi",
+        fields: [
+          { name: "Sumber Air", label: "Sumber Air (Checklist)", type: "checklist", options: [
+            "Air kemasan", "Ledeng/PAM", "Pompa", "Sumur terlindungi", "Mata air terlindungi", "Air hujan", "Air sungai", "Sumur tidak terlindung", "Mata air tidak terlindungi", "Tidak ada sumber air"
+          ], required: true },
+          { name: "Keterangan", label: "Keterangan", type: "textarea", required: false }
+        ]
+      },
+      Mebel: {
+        title: "Mebel",
+        parentMenu: "Aset Tetap",
+        sheet: "Mebel",
+        fields: [
+          { name: "Jenis Mebel", label: "Jenis Mebel", type: "select", options: [
+            "Kursi Umum", "Meja Umum", "Lemari", "Rak", "Filing Kabinet", "Tempat Tidur", "Kursi Siswa", "Meja Siswa", "Loker Siswa", "Kursi Guru & Pengawai", "Meja Guru & Pegawai", "Loker Guru & Pegawai", "Lemari Arsip"
+          ], required: true },
+          { name: "Jumlah Baik", label: "Jumlah Baik", type: "number", required: true },
+          { name: "Jumlah Rusak Ringan", label: "Jumlah Rusak Ringan", type: "number", required: true },
+          { name: "Jumlah Rusak Berat", label: "Jumlah Rusak Berat", type: "number", required: true },
+          { name: "URL Foto", label: "URL Foto", type: "url", required: false }
+        ]
+      },
+      PerlengkapanPenunjang: {
+        title: "Perlengkapan Penunjang",
+        parentMenu: "Aset Tetap",
+        sheet: "PerlengkapanPenunjang",
+        fields: [
+          { name: "Jenis Perlengkapan", label: "Jenis Perlengkapan", type: "select", options: [
+            "Papan Tulis", "Karpet", "Cermin", "Dispenser", "Bak Air", "Kain Pel", "Gayung", "Tempat Sabun", "Tempat Sampah", "Tempat Cuci Tangan", "Jam Dinding", "Simbol Kenegaraan", "Brangkas", "Kotak P3K", "Perlengkapan P3K", "Mikrophone", "Televisi", "Proyektor", "Layar Proyektor", "AC", "Kipas Angin", "Tiang Bendera", "Pengeras Suara", "Mobil", "Motor", "Ambulans"
+          ], required: true },
+          { name: "Jumlah Baik", label: "Jumlah Baik", type: "number", required: true },
+          { name: "Jumlah Rusak Ringan", label: "Jumlah Rusak Ringan", type: "number", required: true },
+          { name: "Jumlah Rusak Berat", label: "Jumlah Rusak Berat", type: "number", required: true },
+          { name: "URL Foto", label: "URL Foto", type: "url", required: false }
+        ]
+      },
+      OlahRagaSeni: {
+        title: "Olah Raga & Seni",
+        parentMenu: "Aset Tetap",
+        sheet: "OlahRagaSeni",
+        fields: [
+          { name: "Nama Item", label: "Nama Item", type: "text", required: true },
+          { name: "Jumlah Baik", label: "Jumlah Baik", type: "number", required: true },
+          { name: "Jumlah Rusak Ringan", label: "Jumlah Rusak Ringan", type: "number", required: true },
+          { name: "Jumlah Rusak Berat", label: "Jumlah Rusak Berat", type: "number", required: true },
+          { name: "URL Foto", label: "URL Foto", type: "url", required: false }
+        ]
+      },
+      PerlengkapanLaboratorium: {
+        title: "Perlengkapan Laboratorium",
+        parentMenu: "Aset Tetap",
+        sheet: "PerlengkapanLaboratorium",
+        fields: [
+          { name: "Nama Item", label: "Nama Item", type: "text", required: true },
+          { name: "Jumlah Baik", label: "Jumlah Baik", type: "number", required: true },
+          { name: "Jumlah Rusak Ringan", label: "Jumlah Rusak Ringan", type: "number", required: true },
+          { name: "Jumlah Rusak Berat", label: "Jumlah Rusak Berat", type: "number", required: true },
+          { name: "URL Foto", label: "URL Foto", type: "url", required: false }
+        ]
+      },
+      FasilitasKeterampilan: {
+        title: "Fasilitas Keterampilan",
+        parentMenu: "Aset Tetap",
+        sheet: "FasilitasKeterampilan",
+        fields: [
+          { name: "Nama Item", label: "Nama Item", type: "text", required: true },
+          { name: "Jumlah Baik", label: "Jumlah Baik", type: "number", required: true },
+          { name: "Jumlah Rusak Ringan", label: "Jumlah Rusak Ringan", type: "number", required: true },
+          { name: "Jumlah Rusak Berat", label: "Jumlah Rusak Berat", type: "number", required: true },
+          { name: "URL Foto", label: "URL Foto", type: "url", required: false }
+        ]
+      },
+      ListrikInternet: {
+        title: "Listrik dan Internet",
+        parentMenu: "Aset Tetap",
+        sheet: "ListrikInternet",
+        fields: [
+          { name: "Nama Gedung", label: "Nama Gedung", type: "select", optionsSource: "Gedung", required: true },
+          { name: "Jenis Layanan", label: "Jenis Layanan", type: "select", options: ["Listrik", "Internet"], required: true },
+          { name: "Daya", label: "Daya", type: "text", required: true }
+        ]
+      },
+      KebutuhanTambahan: {
+        title: "Kebutuhan Tambahan",
+        parentMenu: "Aset Tetap",
+        sheet: "KebutuhanTambahan",
+        fields: [
+          { name: "Nama Item", label: "Nama Item", type: "text", required: true },
+          { name: "Jumlah Baik", label: "Jumlah Baik", type: "number", required: true },
+          { name: "Jumlah Rusak Ringan", label: "Jumlah Rusak Ringan", type: "number", required: true },
+          { name: "Jumlah Rusak Berat", label: "Jumlah Rusak Berat", type: "number", required: true },
+          { name: "URL Foto", label: "URL Foto", type: "url", required: false }
+        ]
+      },
+      SaranaPembelajaran: {
+        title: "Sarana Pembelajaran",
+        parentMenu: "Aset Tetap",
+        sheet: "SaranaPembelajaran",
+        fields: [
+          { name: "Nama Item", label: "Nama Item", type: "text", required: true },
+          { name: "Jumlah Baik", label: "Jumlah Baik", type: "number", required: true },
+          { name: "Jumlah Rusak Ringan", label: "Jumlah Rusak Ringan", type: "number", required: true },
+          { name: "Jumlah Rusak Berat", label: "Jumlah Rusak Berat", type: "number", required: true },
+          { name: "URL Foto", label: "URL Foto", type: "url", required: false }
+        ]
+      },
+      SaranaAdministrasi: {
+        title: "Sarana Administrasi",
+        parentMenu: "Aset Lancar",
+        sheet: "SaranaAdministrasi",
+        fields: [
+          { name: "Nama Item", label: "Nama Item", type: "text", required: true },
+          { name: "Jumlah Baik", label: "Jumlah Baik", type: "number", required: true },
+          { name: "Jumlah Rusak", label: "Jumlah Rusak", type: "number", required: true },
+          { name: "Stok", label: "Stok", type: "number", required: true },
+          { name: "URL Foto", label: "URL Foto", type: "url", required: false }
+        ]
+      },
+      SaranaPerpustakaan: {
+        title: "Sarana Perpustakaan",
+        parentMenu: "Sarana Perpustakaan",
+        sheet: "SaranaPerpustakaan",
+        fields: [
+          { name: "Jenis Buku", label: "Jenis Buku", type: "select", options: ["Buku Bacaan", "Buku Referensi"], required: true },
+          { name: "Judul Buku", label: "Judul Buku", type: "text", required: true },
+          { name: "Pengarang & Penerbit", label: "Pengarang & Penerbit", type: "text", required: true },
+          { name: "ISBN", label: "ISBN", type: "text", required: true },
+          { name: "Jumlah", label: "Jumlah", type: "number", required: true }
+        ]
+      }
+    };
+
+    // =====================================================================
+    // API Helper — memanggil Google Apps Script Web App secara langsung
+    // ketika aplikasi dijalankan di luar lingkungan Google Apps Script
+    // =====================================================================
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyh_hxZtKJDoCKtxGYOHa_z_k6jVcuie3kjtc45FpxHxpWpWLznpIVI1AQp19AtdQzh6Q/exec";
+
+    /**
+     * Memanggil fungsi server-side Apps Script via HTTP GET dengan parameter JSON.
+     * @param {string} action - Nama fungsi yang dipanggil (readData, addData, dll.)
+     * @param {object} params - Parameter yang dikirim ke fungsi
+     * @returns {Promise} - Resolve dengan data hasil, reject dengan Error
+     */
+    function callApi(action, params) {
+      const query = encodeURIComponent(JSON.stringify({ action, params }));
+      const url = `${APPS_SCRIPT_URL}?payload=${query}`;
+      return fetch(url)
+        .then(res => {
+          if (!res.ok) throw new Error("HTTP error: " + res.status);
+          return res.json();
+        })
+        .then(json => {
+          if (json && json.error) throw new Error(json.error);
+          return json.result !== undefined ? json.result : json;
+        });
+    }
+
+    // App State Caching
+    const App = {
+      currentMenu: "Lahan",
+      data: [],
+      lists: {}, // Stores drop down lists e.g., Lahan details, Gedung details
+      editId: null,
+      isLoading: false,
+      role: sessionStorage.getItem("sipras_role") || "guest"
+    };
+
+    // Initialize App when Page loads
+    window.addEventListener("DOMContentLoaded", () => {
+      updateRoleUI();
+      loadSettingsAndLogo();
+      switchMenu("Lahan");
+    });
+
+    // Toggle Sidebar visibility on mobile
+    function toggleSidebar() {
+      document.getElementById("sidebar").classList.toggle("open");
+    }
+
+    // Toggle Submenu Accordion groups
+    function toggleGroup(groupId) {
+      const group = document.getElementById("group-" + groupId);
+      group.classList.toggle("collapsed");
+    }
+
+    // Show Loader Spinner on UI
+    function showLoading(state, label) {
+      App.isLoading = state;
+
+      // Status dot di topbar
+      const indicator = document.getElementById("system-indicator");
+      const statusText = document.getElementById("system-status-text");
+      if (state) {
+        indicator.className = "status-dot loading";
+        statusText.innerText = "Processing...";
+      } else {
+        indicator.className = "status-dot";
+        statusText.innerText = "Connected";
+      }
+
+      // Full-screen overlay
+      const overlay = document.getElementById("loading-overlay");
+      const loadingLabel = document.getElementById("loading-label");
+      if (state) {
+        loadingLabel.innerText = label || "Memuat data...";
+        overlay.classList.add("active");
+      } else {
+        overlay.classList.remove("active");
+      }
+
+      // Tombol Simpan — tampilkan spinner inline saat proses
+      const btnSave = document.getElementById("btn-save");
+      if (btnSave) {
+        if (state) {
+          btnSave.disabled = true;
+          btnSave.dataset.originalHtml = btnSave.innerHTML;
+          btnSave.innerHTML = `<span class="btn-spinner"></span><span>Menyimpan...</span>`;
+        } else {
+          btnSave.disabled = false;
+          if (btnSave.dataset.originalHtml) {
+            btnSave.innerHTML = btnSave.dataset.originalHtml;
+          }
+        }
+      }
+    }
+
+    // Display Floating Toast notification
+    function showToast(message, type = "info") {
+      const container = document.getElementById("toast-container");
+      const toast = document.createElement("div");
+      toast.className = `toast ${type}`;
+      
+      let icon = "info";
+      if (type === "success") icon = "check_circle";
+      if (type === "error") icon = "error";
+      
+      toast.innerHTML = `
+        <span class="material-symbols-outlined icon">${icon}</span>
+        <span>${message}</span>
+      `;
+      
+      container.appendChild(toast);
+      
+      // Auto dismiss
+      setTimeout(() => {
+        toast.style.animation = "slideIn 0.3s reverse forwards";
+        toast.addEventListener("animationend", () => {
+          toast.remove();
+        });
+      }, 4000);
+    }
+
+    // Navigation trigger
+    function switchMenu(menuName) {
+      if (!schemas[menuName]) return;
+      App.currentMenu = menuName;
+      App.editId = null;
+      
+      // Update Sidebar Active state
+      document.querySelectorAll(".menu-item").forEach(item => {
+        item.classList.remove("active");
+        if (item.getAttribute("onclick") === `switchMenu('${menuName}')`) {
+          item.classList.add("active");
+        }
+      });
+
+      // Update Breadcrumbs
+      const schema = schemas[menuName];
+      document.getElementById("breadcrumb-parent").innerText = schema.parentMenu;
+      document.getElementById("breadcrumb-active").innerText = schema.title;
+      document.getElementById("view-title").innerText = schema.title;
+      
+      // Clear search
+      document.getElementById("search-input").value = "";
+
+      // Load Data from Apps Script
+      loadTableData();
+    }
+
+    // Retrieve active sheet data
+    function loadTableData() {
+      showLoading(true, "Memuat data...");
+      const schema = schemas[App.currentMenu];
+      
+      // Gunakan API nyata baik di dalam maupun di luar lingkungan Google Apps Script
+      if (typeof google !== "undefined" && google.script) {
+        google.script.run
+          .withSuccessHandler(data => {
+            App.data = data;
+            renderTable();
+            renderStats();
+            showLoading(false);
+          })
+          .withFailureHandler(err => {
+            showToast(err.message || "Gagal mengambil data", "error");
+            showLoading(false);
+          })
+          .readData(schema.sheet);
+      } else {
+        callApi("readData", { sheetName: schema.sheet })
+          .then(data => {
+            App.data = data;
+            renderTable();
+            renderStats();
+            showLoading(false);
+          })
+          .catch(err => {
+            showToast(err.message || "Gagal mengambil data", "error");
+            showLoading(false);
+          });
+      }
+    }
+
+    // Render Table headers and body dynamically based on schema
+    function renderTable(filteredData = null) {
+      const schema = schemas[App.currentMenu];
+      const dataToRender = filteredData || App.data;
+      
+      const headerRow = document.getElementById("table-headers");
+      const tableBody = document.getElementById("table-body");
+      const countBadge = document.getElementById("item-count");
+      
+      headerRow.innerHTML = "";
+      tableBody.innerHTML = "";
+      countBadge.innerText = `${dataToRender.length} records`;
+
+      if (dataToRender.length === 0) {
+        tableBody.innerHTML = `
+          <tr>
+            <td colspan="100%" class="empty-state">
+              <span class="material-symbols-outlined empty-icon">folder_open</span>
+              <p>Belum ada data tersedia pada menu ${schema.title}</p>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      // Add fixed ID column
+      const thId = document.createElement("th");
+      thId.innerText = "ID";
+      headerRow.appendChild(thId);
+
+      // Add dynamic fields based on schema
+      schema.fields.forEach(f => {
+        const th = document.createElement("th");
+        th.innerText = f.label.replace(/\(.*\)/, ""); // clean labels from units for clean table columns
+        headerRow.appendChild(th);
+      });
+
+      // Add Action column
+      if (App.role === "admin") {
+        const thActions = document.createElement("th");
+        thActions.innerText = "Aksi";
+        thActions.style.textAlign = "center";
+        headerRow.appendChild(thActions);
+      }
+
+      // Render Rows
+      dataToRender.forEach(row => {
+        const tr = document.createElement("tr");
+        
+        // Render ID
+        const tdId = document.createElement("td");
+        tdId.innerHTML = `<span style="font-family: monospace; font-size: 12px; color: var(--text-secondary);">${row.ID || '-'}</span>`;
+        tr.appendChild(tdId);
+
+        // Render fields
+        schema.fields.forEach(f => {
+          const td = document.createElement("td");
+          const val = row[f.name];
+          
+          if (f.type === "url" && val) {
+            // Check if valid URL and render image
+            if (val.match(/\.(jpeg|jpg|gif|png|webp)/i) || val.includes("drive.google.com") || val.includes("unsplash.com")) {
+              td.innerHTML = `<img src="${val}" class="table-img" onclick="openLightbox('${val}')" onerror="this.outerHTML='<span class=\'material-symbols-outlined\'>broken_image</span>'">`;
+            } else {
+              td.innerHTML = `<a href="${val}" target="_blank" style="color: var(--accent-blue); text-decoration: underline;">Link</a>`;
+            }
+          } else if (f.name === "Sumber Air" && val) {
+            // Beautify Air Sanitasi checklist format
+            const sources = val.split(", ").map(s => `<span style="background: rgba(255,255,255,0.05); padding: 2px 6px; border-radius: 4px; font-size: 11px; margin-right: 4px; display: inline-block;">${s}</span>`).join("");
+            td.innerHTML = sources;
+          } else {
+            td.innerText = (val !== undefined && val !== null) ? val : "-";
+          }
+          tr.appendChild(td);
+        });
+
+        // Action Cell
+        if (App.role === "admin") {
+          const tdActions = document.createElement("td");
+          tdActions.style.textAlign = "center";
+          tdActions.innerHTML = `
+            <div class="actions-cell" style="justify-content: center;">
+              <button class="btn-icon edit" onclick="editItem('${row.ID}')" title="Edit">
+                <span class="material-symbols-outlined">edit</span>
+              </button>
+              <button class="btn-icon delete" onclick="deleteItem('${row.ID}')" title="Hapus">
+                <span class="material-symbols-outlined">delete</span>
+              </button>
+            </div>
+          `;
+          tr.appendChild(tdActions);
+        }
+        tableBody.appendChild(tr);
+      });
+    }
+
+    // Dynamic stats renderer based on sheet content
+    function renderStats() {
+      const statsSection = document.getElementById("stats-section");
+      statsSection.innerHTML = "";
+      
+      const count = App.data.length;
+      
+      if (App.currentMenu === "Lahan") {
+        let totalSertifikat = 0;
+        let totalBelum = 0;
+        let totalLuas = 0;
+        
+        App.data.forEach(item => {
+          totalSertifikat += parseFloat(item["Sertifikat"]) || 0;
+          totalBelum += parseFloat(item["Belum Sertifikat"]) || 0;
+          totalLuas += parseFloat(item["Total"]) || 0;
+        });
+
+        statsSection.innerHTML = `
+          <div class="stat-card">
+            <div class="stat-info">
+              <span class="stat-title">Jumlah Lahan</span>
+              <span class="stat-value">${count}</span>
+            </div>
+            <div class="stat-icon icon-blue">
+              <span class="material-symbols-outlined">landscape</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-info">
+              <span class="stat-title">Total Bersertifikat</span>
+              <span class="stat-value">${totalSertifikat.toLocaleString()} m²</span>
+            </div>
+            <div class="stat-icon icon-emerald">
+              <span class="material-symbols-outlined">workspace_premium</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-info">
+              <span class="stat-title">Belum Sertifikat</span>
+              <span class="stat-value">${totalBelum.toLocaleString()} m²</span>
+            </div>
+            <div class="stat-icon icon-orange">
+              <span class="material-symbols-outlined">pending_actions</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-info">
+              <span class="stat-title">Total Keseluruhan</span>
+              <span class="stat-value">${totalLuas.toLocaleString()} m²</span>
+            </div>
+            <div class="stat-icon icon-violet">
+              <span class="material-symbols-outlined">map</span>
+            </div>
+          </div>
+        `;
+      } else if (["Mebel", "PerlengkapanPenunjang", "OlahRagaSeni", "PerlengkapanLaboratorium", "FasilitasKeterampilan", "KebutuhanTambahan", "SaranaPembelajaran"].includes(App.currentMenu)) {
+        let baik = 0, ringan = 0, berat = 0;
+        App.data.forEach(item => {
+          baik += parseInt(item["Jumlah Baik"]) || 0;
+          ringan += parseInt(item["Jumlah Rusak Ringan"]) || 0;
+          berat += parseInt(item["Jumlah Rusak Berat"]) || 0;
+        });
+        const total = baik + ringan + berat;
+        
+        statsSection.innerHTML = `
+          <div class="stat-card">
+            <div class="stat-info">
+              <span class="stat-title">Total Inventaris</span>
+              <span class="stat-value">${total.toLocaleString()}</span>
+            </div>
+            <div class="stat-icon icon-blue">
+              <span class="material-symbols-outlined">calculate</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-info">
+              <span class="stat-title">Kondisi Baik</span>
+              <span class="stat-value" style="color: var(--accent-emerald);">${baik.toLocaleString()}</span>
+            </div>
+            <div class="stat-icon icon-emerald">
+              <span class="material-symbols-outlined">task_alt</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-info">
+              <span class="stat-title">Rusak Ringan</span>
+              <span class="stat-value" style="color: var(--accent-orange);">${ringan.toLocaleString()}</span>
+            </div>
+            <div class="stat-icon icon-orange">
+              <span class="material-symbols-outlined">error</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-info">
+              <span class="stat-title">Rusak Berat</span>
+              <span class="stat-value" style="color: var(--accent-red);">${berat.toLocaleString()}</span>
+            </div>
+            <div class="stat-icon icon-violet" style="color: var(--accent-red); background: rgba(239, 68, 68, 0.15)">
+              <span class="material-symbols-outlined">warning</span>
+            </div>
+          </div>
+        `;
+      } else if (App.currentMenu === "SaranaAdministrasi") {
+        let baik = 0, rusak = 0, stok = 0;
+        App.data.forEach(item => {
+          baik += parseInt(item["Jumlah Baik"]) || 0;
+          rusak += parseInt(item["Jumlah Rusak"]) || 0;
+          stok += parseInt(item["Stok"]) || 0;
+        });
+        
+        statsSection.innerHTML = `
+          <div class="stat-card">
+            <div class="stat-info">
+              <span class="stat-title">Jenis Barang</span>
+              <span class="stat-value">${count}</span>
+            </div>
+            <div class="stat-icon icon-blue">
+              <span class="material-symbols-outlined">category</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-info">
+              <span class="stat-title">Kondisi Baik</span>
+              <span class="stat-value">${baik}</span>
+            </div>
+            <div class="stat-icon icon-emerald">
+              <span class="material-symbols-outlined">check_circle</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-info">
+              <span class="stat-title">Kondisi Rusak</span>
+              <span class="stat-value" style="color: var(--accent-red);">${rusak}</span>
+            </div>
+            <div class="stat-icon icon-orange" style="color: var(--accent-red); background: rgba(239, 68, 68, 0.15)">
+              <span class="material-symbols-outlined">cancel</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-info">
+              <span class="stat-title">Total Stok Gudang</span>
+              <span class="stat-value">${stok}</span>
+            </div>
+            <div class="stat-icon icon-violet">
+              <span class="material-symbols-outlined">inventory_2</span>
+            </div>
+          </div>
+        `;
+      } else {
+        // Generic stats card (e.g. Ruangan, Perpustakaan, Gedung)
+        statsSection.innerHTML = `
+          <div class="stat-card" style="grid-column: span 2;">
+            <div class="stat-info">
+              <span class="stat-title">Total Entri Aktif</span>
+              <span class="stat-value">${count}</span>
+            </div>
+            <div class="stat-icon icon-blue">
+              <span class="material-symbols-outlined">analytics</span>
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    // Search client filter
+    function handleSearch(query) {
+      if (!query) {
+        renderTable();
+        return;
+      }
+      
+      const q = query.toLowerCase().trim();
+      const filtered = App.data.filter(row => {
+        return Object.values(row).some(val => 
+          val && val.toString().toLowerCase().includes(q)
+        );
+      });
+      renderTable(filtered);
+    }
+
+    // Load sheets dependencies (Lahan or Gedung options) to feed dynamic dropdown selects
+    function fetchDependencies(callback) {
+      const schema = schemas[App.currentMenu];
+      const dependencies = [];
+
+      schema.fields.forEach(f => {
+        if (f.optionsSource && !App.lists[f.optionsSource]) {
+          dependencies.push(f.optionsSource);
+        }
+      });
+
+      if (dependencies.length === 0) {
+        callback();
+        return;
+      }
+
+      showLoading(true, "Memuat opsi pilihan...");
+      let loaded = 0;
+      dependencies.forEach(dep => {
+        if (typeof google !== "undefined" && google.script) {
+          google.script.run
+            .withSuccessHandler(data => {
+              App.lists[dep] = data;
+              loaded++;
+              if (loaded === dependencies.length) {
+                showLoading(false);
+                callback();
+              }
+            })
+            .withFailureHandler(err => {
+              showToast(`Gagal memuat data dependensi: ${dep}`, "error");
+              showLoading(false);
+            })
+            .readData(dep);
+        } else {
+          callApi("readData", { sheetName: dep })
+            .then(data => {
+              App.lists[dep] = data;
+              loaded++;
+              if (loaded === dependencies.length) {
+                showLoading(false);
+                callback();
+              }
+            })
+            .catch(err => {
+              showToast(`Gagal memuat data dependensi: ${dep}`, "error");
+              showLoading(false);
+            });
+        }
+      });
+    }
+
+    // Open Modal form to create new entry
+    function openAddModal() {
+      App.editId = null;
+      document.getElementById("modal-title").innerText = `Tambah ${schemas[App.currentMenu].title}`;
+      document.getElementById("btn-save").innerText = "Simpan";
+      
+      fetchDependencies(() => {
+        buildForm();
+        document.getElementById("form-modal").classList.add("open");
+      });
+    }
+
+    // Open Modal form to edit existing item
+    function editItem(id) {
+      const item = App.data.find(row => row.ID === id);
+      if (!item) {
+        showToast("Item tidak ditemukan", "error");
+        return;
+      }
+
+      App.editId = id;
+      document.getElementById("modal-title").innerText = `Edit ${schemas[App.currentMenu].title} (${id})`;
+      document.getElementById("btn-save").innerText = "Simpan Perubahan";
+
+      fetchDependencies(() => {
+        buildForm(item);
+        document.getElementById("form-modal").classList.add("open");
+      });
+    }
+
+    // Close Modal form
+    function closeModal() {
+      document.getElementById("form-modal").classList.remove("open");
+      document.getElementById("dynamic-form").reset();
+    }
+
+    // Build the dynamic HTML form fields based on the selected schema
+    function buildForm(existingData = null) {
+      const container = document.getElementById("modal-fields");
+      container.innerHTML = "";
+      const schema = schemas[App.currentMenu];
+      
+      schema.fields.forEach(f => {
+        const formGroup = document.createElement("div");
+        formGroup.className = "form-group";
+        
+        const label = document.createElement("label");
+        label.setAttribute("for", f.name);
+        label.innerText = f.label;
+        formGroup.appendChild(label);
+
+        let inputElement;
+
+        // Custom validation / dynamic bindings on forms
+        if (f.type === "select") {
+          inputElement = document.createElement("select");
+          inputElement.className = "form-control";
+          inputElement.name = f.name;
+          inputElement.id = f.name;
+          inputElement.required = f.required;
+
+          // Add blank option
+          const emptyOpt = document.createElement("option");
+          emptyOpt.value = "";
+          emptyOpt.innerText = `-- Pilih ${f.label} --`;
+          inputElement.appendChild(emptyOpt);
+
+          // Populate select values
+          if (f.optionsSource) {
+            // Source values from another sheet cache (like Lahan or Gedung lists)
+            const list = App.lists[f.optionsSource] || [];
+            list.forEach(optItem => {
+              const opt = document.createElement("option");
+              // Identify display values based on sheet columns
+              const optVal = optItem["Nama Lahan"] || optItem["Nama Gedung"] || optItem.ID;
+              opt.value = optVal;
+              opt.innerText = optVal;
+              if (existingData && existingData[f.name] === optVal) {
+                opt.selected = true;
+              }
+              inputElement.appendChild(opt);
+            });
+          } else if (f.options) {
+            // Source values from fixed arrays
+            f.options.forEach(optVal => {
+              const opt = document.createElement("option");
+              opt.value = optVal;
+              opt.innerText = optVal;
+              if (existingData && existingData[f.name] === optVal) {
+                opt.selected = true;
+              }
+              inputElement.appendChild(opt);
+            });
+          }
+
+          // Special dynamic behavior bindings (like Listrik/Internet Daya unit indicator)
+          if (App.currentMenu === "ListrikInternet" && f.name === "Jenis Layanan") {
+            inputElement.addEventListener("change", (e) => {
+              const dayaLabel = container.querySelector('label[for="Daya"]');
+              const val = e.target.value;
+              if (val === "Listrik") {
+                dayaLabel.innerText = "Daya (KWh)";
+              } else if (val === "Internet") {
+                dayaLabel.innerText = "Daya (Mbps)";
+              } else {
+                dayaLabel.innerText = "Daya";
+              }
+            });
+          }
+
+        } else if (f.type === "checklist") {
+          // Special checkbox list layout for Air Sanitasi
+          const checklistDiv = document.createElement("div");
+          checklistDiv.className = "checklist-container";
+          
+          let selectedSources = [];
+          if (existingData && existingData[f.name]) {
+            selectedSources = existingData[f.name].split(", ");
+          }
+
+          f.options.forEach(optVal => {
+            const labelItem = document.createElement("label");
+            labelItem.className = "checklist-item";
+            
+            const check = document.createElement("input");
+            check.type = "checkbox";
+            check.name = f.name;
+            check.value = optVal;
+            if (selectedSources.includes(optVal)) {
+              check.checked = true;
+            }
+            
+            labelItem.appendChild(check);
+            labelItem.appendChild(document.createTextNode(optVal));
+            checklistDiv.appendChild(labelItem);
+          });
+          inputElement = checklistDiv;
+          
+        } else if (f.type === "textarea") {
+          inputElement = document.createElement("textarea");
+          inputElement.className = "form-control";
+          inputElement.name = f.name;
+          inputElement.id = f.name;
+          inputElement.required = f.required;
+          if (existingData) {
+            inputElement.value = existingData[f.name] || "";
+          }
+          
+        } else {
+          // Standard text / number / url input
+          inputElement = document.createElement("input");
+          inputElement.type = f.type;
+          inputElement.className = "form-control";
+          inputElement.name = f.name;
+          inputElement.id = f.name;
+          inputElement.required = f.required;
+          if (f.readonly) {
+            inputElement.readOnly = true;
+          }
+          
+          if (existingData) {
+            inputElement.value = existingData[f.name] || "";
+          }
+
+          // Image URL live preview listener
+          if (f.type === "url") {
+            const previewBox = document.createElement("div");
+            previewBox.className = "url-preview-box";
+            previewBox.id = `preview-${f.name}`;
+            
+            const previewImg = document.createElement("img");
+            previewImg.className = "url-preview-img";
+            
+            const previewText = document.createElement("div");
+            previewText.className = "url-preview-text";
+            
+            previewBox.appendChild(previewImg);
+            previewBox.appendChild(previewText);
+            
+            // Listen to input changes
+            inputElement.addEventListener("input", (e) => {
+              const url = e.target.value;
+              if (url && (url.startsWith("http://") || url.startsWith("https://"))) {
+                previewImg.src = url;
+                previewText.innerText = url;
+                previewBox.style.display = "flex";
+              } else {
+                previewBox.style.display = "none";
+              }
+            });
+
+            // Trigger initial preview if edit
+            if (existingData && existingData[f.name]) {
+              setTimeout(() => {
+                inputElement.dispatchEvent(new Event("input"));
+              }, 50);
+            }
+            
+            formGroup.appendChild(inputElement);
+            formGroup.appendChild(previewBox);
+            inputElement = null; // Prevent appending inputElement twice below
+          }
+        }
+
+        if (inputElement) {
+          formGroup.appendChild(inputElement);
+        }
+
+        // Lahan automatic calculation total = sertifikat + belum sertifikat
+        if (App.currentMenu === "Lahan" && (f.name === "Sertifikat" || f.name === "Belum Sertifikat")) {
+          const calculateTotal = () => {
+            const certInput = container.querySelector('[name="Sertifikat"]');
+            const uncertInput = container.querySelector('[name="Belum Sertifikat"]');
+            const totalInput = container.querySelector('[name="Total"]');
+            if (certInput && uncertInput && totalInput) {
+              const cert = parseFloat(certInput.value) || 0;
+              const uncert = parseFloat(uncertInput.value) || 0;
+              totalInput.value = cert + uncert;
+            }
+          };
+          inputElement.addEventListener("input", calculateTotal);
+        }
+
+        container.appendChild(formGroup);
+      });
+      
+      // Update Listrik/Internet Daya text labels on edit start
+      if (App.currentMenu === "ListrikInternet" && existingData) {
+        const typeSelect = container.querySelector('[name="Jenis Layanan"]');
+        if (typeSelect) {
+          typeSelect.dispatchEvent(new Event("change"));
+        }
+      }
+    }
+
+    // Submit form and add/update records
+    function handleFormSubmit(event) {
+      event.preventDefault();
+      const form = event.target;
+      const schema = schemas[App.currentMenu];
+
+      // Validasi manual field required
+      let hasError = false;
+      form.querySelectorAll(".field-error").forEach(el => el.remove());
+      form.querySelectorAll(".form-control.invalid").forEach(el => el.classList.remove("invalid"));
+
+      schema.fields.forEach(f => {
+        if (!f.required) return;
+        if (f.type === "checklist") return; // checklist tidak wajib
+        const input = form.querySelector(`[name="${f.name}"]`);
+        if (!input) return;
+        const val = input.value ? input.value.trim() : "";
+        if (!val) {
+          input.classList.add("invalid");
+          const errMsg = document.createElement("span");
+          errMsg.className = "field-error";
+          errMsg.style.cssText = "color: var(--accent-red); font-size: 12px; margin-top: 4px; display: block;";
+          errMsg.innerText = `${f.label} wajib diisi.`;
+          input.parentNode.appendChild(errMsg);
+          hasError = true;
+        }
+      });
+
+      if (hasError) {
+        // Scroll ke field pertama yang error
+        const firstInvalid = form.querySelector(".form-control.invalid");
+        if (firstInvalid) firstInvalid.scrollIntoView({ behavior: "smooth", block: "center" });
+        return;
+      }
+
+      showLoading(true, App.editId ? "Menyimpan perubahan..." : "Menambah data...");
+      
+      const payload = {};
+      
+      schema.fields.forEach(f => {
+        if (f.type === "checklist") {
+          // Collect checked checkboxes
+          const checked = [];
+          form.querySelectorAll(`input[name="${f.name}"]:checked`).forEach(cb => {
+            checked.push(cb.value);
+          });
+          payload[f.name] = checked.join(", ");
+        } else {
+          const input = form.querySelector(`[name="${f.name}"]`);
+          if (input) {
+            payload[f.name] = input.value;
+          }
+        }
+      });
+
+      if (typeof google !== "undefined" && google.script) {
+        if (App.editId) {
+          google.script.run
+            .withSuccessHandler(res => {
+              showToast("Data berhasil diperbarui!", "success");
+              closeModal();
+              loadTableData();
+            })
+            .withFailureHandler(err => {
+              showToast(err.message || "Gagal memperbarui data", "error");
+              showLoading(false);
+            })
+            .updateData(schema.sheet, App.editId, payload);
+        } else {
+          google.script.run
+            .withSuccessHandler(res => {
+              showToast("Data berhasil ditambahkan!", "success");
+              closeModal();
+              loadTableData();
+            })
+            .withFailureHandler(err => {
+              showToast(err.message || "Gagal menambah data", "error");
+              showLoading(false);
+            })
+            .addData(schema.sheet, payload);
+        }
+      } else {
+        if (App.editId) {
+          callApi("updateData", { sheetName: schema.sheet, id: App.editId, item: payload })
+            .then(() => {
+              showToast("Data berhasil diperbarui!", "success");
+              closeModal();
+              loadTableData();
+            })
+            .catch(err => {
+              showToast(err.message || "Gagal memperbarui data", "error");
+              showLoading(false);
+            });
+        } else {
+          callApi("addData", { sheetName: schema.sheet, item: payload })
+            .then(() => {
+              showToast("Data berhasil ditambahkan!", "success");
+              closeModal();
+              loadTableData();
+            })
+            .catch(err => {
+              showToast(err.message || "Gagal menambah data", "error");
+              showLoading(false);
+            });
+        }
+      }
+    }
+
+    // Delete confirmation and trigger
+    function deleteItem(id) {
+      if (!confirm(`Apakah Anda yakin ingin menghapus data dengan ID ${id}?`)) {
+        return;
+      }
+
+      showLoading(true, "Menghapus data...");
+      const schema = schemas[App.currentMenu];
+
+      if (typeof google !== "undefined" && google.script) {
+        google.script.run
+          .withSuccessHandler(res => {
+            showToast("Data berhasil dihapus!", "success");
+            loadTableData();
+          })
+          .withFailureHandler(err => {
+            showToast(err.message || "Gagal menghapus data", "error");
+            showLoading(false);
+          })
+          .deleteData(schema.sheet, id);
+      } else {
+        callApi("deleteData", { sheetName: schema.sheet, id: id })
+          .then(() => {
+            showToast("Data berhasil dihapus!", "success");
+            loadTableData();
+          })
+          .catch(err => {
+            showToast(err.message || "Gagal menghapus data", "error");
+            showLoading(false);
+          });
+      }
+    }
+
+    // Run setup Spreadsheet database sheet structure
+    function triggerDbSetup() {
+      if (!confirm("Apakah Anda ingin menjalankan inisialisasi / perbaikan tabel database spreadsheet?\nTindakan ini aman dan tidak akan menghapus data yang sudah ada.")) {
+        return;
+      }
+
+      showLoading(true, "Menyiapkan database...");
+      showToast("Sedang menyiapkan database...", "info");
+
+      if (typeof google !== "undefined" && google.script) {
+        google.script.run
+          .withSuccessHandler(res => {
+            showToast(res || "Database siap digunakan!", "success");
+            loadTableData();
+          })
+          .withFailureHandler(err => {
+            showToast("Gagal melakukan setup: " + err.message, "error");
+            showLoading(false);
+          })
+          .runSetupFromWeb();
+      } else {
+        callApi("runSetupFromWeb", {})
+          .then(res => {
+            showToast(res || "Database siap digunakan!", "success");
+            loadTableData();
+          })
+          .catch(err => {
+            showToast("Gagal melakukan setup: " + err.message, "error");
+            showLoading(false);
+          });
+      }
+    }
+
+    // Open photo URL in large lightbox overlay
+    function openLightbox(url) {
+      const modal = document.getElementById("lightbox-modal");
+      const img = document.getElementById("lightbox-img");
+      img.src = url;
+      modal.classList.add("open");
+    }
+
+    // Close photo lightbox overlay
+    function closeLightbox() {
+      document.getElementById("lightbox-modal").classList.remove("open");
+    }
+
+    // Simulates mock data when loaded outside Google Apps Script (e.g. offline testing)
+    function simulateDataLoad() {
+      if (App.currentMenu === "Lahan") {
+        App.data = [
+          { ID: "LAH-001", "Nama Lahan": "Lahan Utama Kampus", Sertifikat: 1500, "Belum Sertifikat": 500, Total: 2000, Keterangan: "Sertifikasi dalam proses" },
+          { ID: "LAH-002", "Nama Lahan": "Lahan Parkir Barat", Sertifikat: 800, "Belum Sertifikat": 0, Total: 800, Keterangan: "Sudah SHM" }
+        ];
+      } else if (App.currentMenu === "Gedung") {
+        App.data = [
+          { ID: "GED-001", "Nama Lahan": "Lahan Utama Kampus", "Nama Gedung": "Gedung Rektorat A", "Jumlah Lantai": 4, "Tahun Dibangun": 2018, "Ukuran Panjang (m)": 40, "Ukuran Lebar (m)": 20, "URL Foto": "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=150" }
+        ];
+      } else {
+        App.data = [];
+      }
+      renderTable();
+      renderStats();
+    }
+
+    // Settings Modal controls
+    function openSettingsModal() {
+      document.getElementById("current-db-display").innerText = "Memuat konfigurasi...";
+      document.getElementById("db-url-input").value = "";
+      document.getElementById("settings-modal").classList.add("open");
+      
+      if (typeof google !== "undefined" && google.script) {
+        google.script.run
+          .withSuccessHandler(config => {
+            document.getElementById("current-db-display").innerText = config.currentUrl || "Tidak terdeteksi. Silakan atur URL Spreadsheet.";
+            document.getElementById("db-url-input").value = config.customUrl || "";
+          })
+          .withFailureHandler(err => {
+            showToast("Gagal memuat konfigurasi database", "error");
+          })
+          .getDatabaseConfig();
+      } else {
+        callApi("getDatabaseConfig", {})
+          .then(config => {
+            document.getElementById("current-db-display").innerText = config.currentUrl || "Tidak terdeteksi. Silakan atur URL Spreadsheet.";
+            document.getElementById("db-url-input").value = config.customUrl || "";
+          })
+          .catch(() => {
+            showToast("Gagal memuat konfigurasi database", "error");
+          });
+      }
+    }
+    
+    function closeSettingsModal() {
+      document.getElementById("settings-modal").classList.remove("open");
+    }
+    
+    function handleSettingsSubmit(event) {
+      event.preventDefault();
+      const url = document.getElementById("db-url-input").value;
+      const logoUrl = document.getElementById("logo-url-input").value;
+      const oldPass = document.getElementById("old-pass").value;
+      const newPass = document.getElementById("new-pass").value;
+      const confirmPass = document.getElementById("confirm-pass").value;
+      
+      showLoading(true, "Menyimpan konfigurasi...");
+      
+      // Helper to save db url and logo url
+      const saveConfigs = () => {
+        const doSave = (saveLogo, saveDb) => {
+          if (typeof google !== "undefined" && google.script) {
+            google.script.run
+              .withSuccessHandler(() => {
+                google.script.run
+                  .withSuccessHandler(res => {
+                    showToast("Pengaturan berhasil disimpan!", "success");
+                    closeSettingsModal();
+                    App.lists = {};
+                    loadSettingsAndLogo();
+                    loadTableData();
+                  })
+                  .withFailureHandler(err => {
+                    showToast(err.message || "Gagal mengubah database", "error");
+                    showLoading(false);
+                  })
+                  .saveDatabaseConfig(url);
+              })
+              .withFailureHandler(err => {
+                showToast("Gagal menyimpan logo: " + err.message, "error");
+                showLoading(false);
+              })
+              .saveLogoConfig(logoUrl);
+          } else {
+            callApi("saveLogoConfig", { url: logoUrl })
+              .then(() => callApi("saveDatabaseConfig", { url: url }))
+              .then(() => {
+                showToast("Pengaturan berhasil disimpan!", "success");
+                closeSettingsModal();
+                App.lists = {};
+                loadSettingsAndLogo();
+                loadTableData();
+              })
+              .catch(err => {
+                showToast(err.message || "Gagal menyimpan pengaturan", "error");
+                showLoading(false);
+              });
+          }
+        };
+        doSave();
+      };
+      
+      // Check if trying to change password
+      if (oldPass || newPass || confirmPass) {
+        if (!oldPass || !newPass || !confirmPass) {
+          showToast("Semua field ganti password harus diisi!", "error");
+          showLoading(false);
+          return;
+        }
+        if (newPass !== confirmPass) {
+          showToast("Konfirmasi password baru tidak cocok!", "error");
+          showLoading(false);
+          return;
+        }
+        
+        if (typeof google !== "undefined" && google.script) {
+          google.script.run
+            .withSuccessHandler(() => {
+              showToast("Password admin berhasil diubah!", "success");
+              document.getElementById("old-pass").value = "";
+              document.getElementById("new-pass").value = "";
+              document.getElementById("confirm-pass").value = "";
+              saveConfigs();
+            })
+            .withFailureHandler(err => {
+              showToast("Gagal ganti password: " + err.message, "error");
+              showLoading(false);
+            })
+            .changeAdminPassword(oldPass, newPass);
+        } else {
+          callApi("changeAdminPassword", { oldPassword: oldPass, newPassword: newPass })
+            .then(() => {
+              showToast("Password admin berhasil diubah!", "success");
+              document.getElementById("old-pass").value = "";
+              document.getElementById("new-pass").value = "";
+              document.getElementById("confirm-pass").value = "";
+              saveConfigs();
+            })
+            .catch(err => {
+              showToast("Gagal ganti password: " + err.message, "error");
+              showLoading(false);
+            });
+        }
+      } else {
+        saveConfigs();
+      }
+    }
+
+    // Dynamic favicon setter helper
+    function setFavicon(url) {
+      let link = document.querySelector("link[rel~='icon']");
+      if (!link) {
+        link = document.createElement('link');
+        link.rel = 'icon';
+        document.getElementsByTagName('head')[0].appendChild(link);
+      }
+      link.href = url;
+    }
+
+    // Dynamic settings and logo applicator
+    function loadSettingsAndLogo() {
+      const applyLogo = (config) => {
+        if (config && config.logoUrl) {
+          setFavicon(config.logoUrl);
+          const img = document.getElementById("sidebar-logo-img");
+          img.src = config.logoUrl;
+          img.style.display = "block";
+          document.getElementById("sidebar-logo-text").style.display = "none";
+        }
+      };
+
+      if (typeof google !== "undefined" && google.script) {
+        google.script.run
+          .withSuccessHandler(applyLogo)
+          .getDatabaseConfig();
+      } else {
+        callApi("getDatabaseConfig", {})
+          .then(applyLogo)
+          .catch(() => {});
+      }
+    }
+
+    // Role Toggling controls (Admin vs Guest Mode)
+    function updateRoleUI() {
+      const badge = document.getElementById("role-badge");
+      const btn = document.getElementById("btn-role-action");
+      
+      if (App.role === "admin") {
+        // Show Admin Badge
+        badge.innerHTML = `<span class="material-symbols-outlined" style="font-size: 14px; color: var(--accent-emerald);">verified_user</span>Admin`;
+        badge.style.background = "rgba(16, 185, 129, 0.1)";
+        badge.style.color = "var(--accent-emerald)";
+        badge.style.border = "1px solid rgba(16, 185, 129, 0.2)";
+        
+        btn.innerHTML = `<span class="material-symbols-outlined" style="font-size: 16px;">logout</span>Logout`;
+        btn.style.borderColor = "rgba(239, 68, 68, 0.3)";
+        btn.style.color = "var(--accent-red)";
+        
+        // Show all Admin-only elements
+        document.querySelectorAll(".admin-only").forEach(el => {
+          el.style.display = "flex";
+        });
+      } else {
+        // Show Guest Badge
+        badge.innerHTML = `<span class="material-symbols-outlined" style="font-size: 14px; color: var(--text-secondary);">visibility</span>Tamu`;
+        badge.style.background = "rgba(255, 255, 255, 0.05)";
+        badge.style.color = "var(--text-secondary)";
+        badge.style.border = "1px solid var(--panel-border)";
+        
+        btn.innerHTML = `<span class="material-symbols-outlined" style="font-size: 16px;">vpn_key</span>Login Admin`;
+        btn.style.borderColor = "rgba(59, 130, 246, 0.3)";
+        btn.style.color = "var(--accent-blue)";
+        
+        // Hide all Admin-only elements
+        document.querySelectorAll(".admin-only").forEach(el => {
+          el.style.display = "none";
+        });
+      }
+      
+      // Re-render table to hide/show action columns based on role
+      if (App.data.length > 0) {
+        renderTable();
+      }
+    }
+
+    function toggleRoleAction() {
+      if (App.role === "admin") {
+        App.role = "guest";
+        sessionStorage.setItem("sipras_role", "guest");
+        showToast("Anda telah keluar dari Mode Admin.", "info");
+        updateRoleUI();
+      } else {
+        openLoginModal();
+      }
+    }
+
+    function openLoginModal() {
+      document.getElementById("admin-password-input").value = "";
+      document.getElementById("login-modal").classList.add("open");
+      document.getElementById("admin-password-input").focus();
+    }
+    
+    function closeLoginModal() {
+      document.getElementById("login-modal").classList.remove("open");
+    }
+    
+    function handleLoginSubmit(event) {
+      event.preventDefault();
+      const password = document.getElementById("admin-password-input").value;
+      
+      showLoading(true, "Memverifikasi password...");
+      
+      if (typeof google !== "undefined" && google.script) {
+        google.script.run
+          .withSuccessHandler(isValid => {
+            if (isValid) {
+              App.role = "admin";
+              sessionStorage.setItem("sipras_role", "admin");
+              showToast("Login Administrator Berhasil!", "success");
+              updateRoleUI();
+              closeLoginModal();
+            } else {
+              showToast("Password salah. Silakan coba lagi.", "error");
+            }
+            showLoading(false);
+          })
+          .withFailureHandler(err => {
+            showToast("Terjadi kesalahan: " + err.message, "error");
+            showLoading(false);
+          })
+          .verifyAdminPassword(password);
+      } else {
+        callApi("verifyAdminPassword", { password: password })
+          .then(isValid => {
+            if (isValid) {
+              App.role = "admin";
+              sessionStorage.setItem("sipras_role", "admin");
+              showToast("Login Administrator Berhasil!", "success");
+              updateRoleUI();
+              closeLoginModal();
+            } else {
+              showToast("Password salah. Silakan coba lagi.", "error");
+            }
+            showLoading(false);
+          })
+          .catch(err => {
+            showToast("Terjadi kesalahan: " + err.message, "error");
+            showLoading(false);
+          });
+      }
+    }
+  </script>
+</body>
+</html>
