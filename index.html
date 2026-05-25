@@ -1070,7 +1070,7 @@
     <aside id="sidebar">
       <div class="sidebar-header">
         <div class="sidebar-logo" id="sidebar-logo-text">SP</div>
-        <img id="sidebar-logo-img" src="" style="width: 40px; height: 40px; border-radius: 10px; object-fit: cover; display: none;" onerror="this.style.display='none'; document.getElementById('sidebar-logo-text').style.display='flex';">
+        <div id="sidebar-logo-media" style="display: none; width: 40px; height: 40px; border-radius: 10px; overflow: hidden; flex-shrink: 0;"></div>
         <div class="sidebar-title">SIPRAS</div>
         <button class="menu-toggle" onclick="toggleSidebar()">
           <span class="material-symbols-outlined">close</span>
@@ -1311,10 +1311,10 @@
             </span>
           </div>
           <div class="form-group">
-            <label for="logo-url-input">URL Logo Aplikasi (Favicon)</label>
+            <label for="logo-url-input">URL Logo / Ikon Sidebar</label>
             <input type="text" class="form-control" id="logo-url-input" placeholder="https://.../logo.png">
             <span style="font-size: 11px; color: var(--text-muted); display: block; margin-top: 6px;">
-              * URL gambar ini akan digunakan sebagai logo sidebar dan favicon web.
+              * Format yang didukung: <strong style="color: var(--text-secondary);">PNG, JPG, GIF, WebP, SVG</strong> (gambar statis/animasi) dan <strong style="color: var(--text-secondary);">MP4, WebM</strong> (video loop). URL akan digunakan sebagai ikon sidebar dan favicon.
             </span>
           </div>
           
@@ -1403,9 +1403,9 @@
           { name: "Nama Gedung", label: "Nama Gedung", type: "text", required: true },
           { name: "Jumlah Lantai", label: "Jumlah Lantai", type: "number", required: true },
           { name: "Tahun Dibangun", label: "Tahun Dibangun", type: "number", required: true },
-          { name: "Ukuran Panjang (m)", label: "Ukuran Panjang (m)", type: "number", required: true },
-          { name: "Ukuran Lebar (m)", label: "Ukuran Lebar (m)", type: "number", required: true },
-          { name: "URL Foto", label: "URL Foto", type: "url", required: false }
+          { name: "Kondisi", label: "Kondisi", type: "select", options: ["Baik", "Rusak"], required: true },
+          { name: "Persentase Kondisi", label: "Persentase Kondisi (%)", type: "number", required: false },
+          { name: "Luas Gedung", label: "Luas Gedung (m²)", type: "number", required: false }
         ]
       },
       Ruangan: {
@@ -1418,7 +1418,12 @@
             "Ruang Kelas", "Ruang Kepala", "Ruang Guru", "Ruang Tata Usaha", "Ruang Laboratorium", "Ruang UKS", "Ruang BK", "Ruang Osis", "Aula"
           ], required: true },
           { name: "Nama Ruangan", label: "Nama Ruangan", type: "text", required: true },
-          { name: "Keterangan", label: "Keterangan", type: "textarea", required: false }
+          { name: "Lantai Ke", label: "Lantai Ke", type: "number", required: false },
+          { name: "Kondisi", label: "Kondisi", type: "select", options: ["Baik", "Sedang", "Rusak"], required: false },
+          { name: "Tahun Dibangun", label: "Tahun Dibangun", type: "number", required: false },
+          { name: "Panjang (m)", label: "Panjang (m)", type: "number", required: false },
+          { name: "Lebar (m)", label: "Lebar (m)", type: "number", required: false },
+          { name: "URL Foto", label: "URL Foto", type: "url", required: false }
         ]
       },
       AirSanitasi: {
@@ -2498,7 +2503,7 @@
         ];
       } else if (App.currentMenu === "Gedung") {
         App.data = [
-          { ID: "GED-001", "Nama Lahan": "Lahan Utama Kampus", "Nama Gedung": "Gedung Rektorat A", "Jumlah Lantai": 4, "Tahun Dibangun": 2018, "Ukuran Panjang (m)": 40, "Ukuran Lebar (m)": 20, "URL Foto": "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=150" }
+          { ID: "GED-001", "Nama Lahan": "Lahan Utama Kampus", "Nama Gedung": "Gedung Rektorat A", "Jumlah Lantai": 4, "Tahun Dibangun": 2018, "Kondisi": "Baik", "Persentase Kondisi": 90, "Luas Gedung": 800 }
         ];
       } else {
         App.data = [];
@@ -2653,13 +2658,53 @@
     // Dynamic settings and logo applicator
     function loadSettingsAndLogo() {
       const applyLogo = (config) => {
-        if (config && config.logoUrl) {
-          setFavicon(config.logoUrl);
-          const img = document.getElementById("sidebar-logo-img");
-          img.src = config.logoUrl;
-          img.style.display = "block";
-          document.getElementById("sidebar-logo-text").style.display = "none";
+        if (!config || !config.logoUrl) return;
+        const url = config.logoUrl.trim();
+
+        // Favicon (hanya untuk format gambar statis/gif, bukan video)
+        if (!url.match(/\.(mp4|webm|ogg)(\?|$)/i)) {
+          setFavicon(url);
         }
+
+        const logoText = document.getElementById("sidebar-logo-text");
+        const logoMedia = document.getElementById("sidebar-logo-media");
+
+        // Deteksi tipe berdasarkan ekstensi URL
+        const isVideo = /\.(mp4|webm|ogg)(\?|$)/i.test(url);
+        const isGif   = /\.gif(\?|$)/i.test(url);
+        const isImg   = /\.(png|jpg|jpeg|webp|svg|bmp|ico)(\?|$)/i.test(url) || isGif;
+
+        logoMedia.innerHTML = "";
+
+        if (isVideo) {
+          // Format video: mp4, webm, ogg
+          const video = document.createElement("video");
+          video.src = url;
+          video.autoplay = true;
+          video.loop = true;
+          video.muted = true;
+          video.playsInline = true;
+          video.style.cssText = "width:100%; height:100%; object-fit:cover; display:block;";
+          video.onerror = () => {
+            logoMedia.style.display = "none";
+            logoText.style.display = "flex";
+          };
+          logoMedia.appendChild(video);
+        } else {
+          // Format gambar: png, jpg, gif, webp, svg, dll.
+          // Jika bukan ekstensi yang dikenal, tetap coba sebagai gambar (misal URL CDN tanpa ekstensi)
+          const img = document.createElement("img");
+          img.src = url;
+          img.style.cssText = "width:100%; height:100%; object-fit:cover; display:block; border-radius:10px;";
+          img.onerror = () => {
+            logoMedia.style.display = "none";
+            logoText.style.display = "flex";
+          };
+          logoMedia.appendChild(img);
+        }
+
+        logoMedia.style.display = "block";
+        logoText.style.display = "none";
       };
 
       if (typeof google !== "undefined" && google.script) {

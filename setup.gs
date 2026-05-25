@@ -48,8 +48,8 @@ function setupSpreadsheet() {
   // Definition of all sheets and their column headers
   var sheetsDefinition = {
     "Lahan": ["ID", "Timestamp", "Nama Lahan", "Sertifikat", "Belum Sertifikat", "Total", "Keterangan"],
-    "Gedung": ["ID", "Timestamp", "Nama Lahan", "Nama Gedung", "Jumlah Lantai", "Tahun Dibangun", "Ukuran Panjang (m)", "Ukuran Lebar (m)", "URL Foto"],
-    "Ruangan": ["ID", "Timestamp", "Nama Gedung", "Jenis Ruangan", "Nama Ruangan", "Keterangan"],
+    "Gedung": ["ID", "Timestamp", "Nama Lahan", "Nama Gedung", "Jumlah Lantai", "Tahun Dibangun", "Kondisi", "Persentase Kondisi", "Luas Gedung"],
+    "Ruangan": ["ID", "Timestamp", "Nama Gedung", "Jenis Ruangan", "Nama Ruangan", "Lantai Ke", "Kondisi", "Tahun Dibangun", "Panjang (m)", "Lebar (m)", "URL Foto"],
     "AirSanitasi": ["ID", "Timestamp", "Sumber Air", "Keterangan"],
     "Mebel": ["ID", "Timestamp", "Jenis Mebel", "Jumlah Baik", "Jumlah Rusak Ringan", "Jumlah Rusak Berat", "URL Foto"],
     "PerlengkapanPenunjang": ["ID", "Timestamp", "Jenis Perlengkapan", "Jumlah Baik", "Jumlah Rusak Ringan", "Jumlah Rusak Berat", "URL Foto"],
