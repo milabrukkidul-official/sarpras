@@ -1823,16 +1823,26 @@
         if (App.role === "admin") {
           const tdActions = document.createElement("td");
           tdActions.style.textAlign = "center";
-          tdActions.innerHTML = `
-            <div class="actions-cell" style="justify-content: center;">
-              <button class="btn-icon edit" onclick="editItem('${row.ID}')" title="Edit">
-                <span class="material-symbols-outlined">edit</span>
-              </button>
-              <button class="btn-icon delete" onclick="deleteItem('${row.ID}')" title="Hapus">
-                <span class="material-symbols-outlined">delete</span>
-              </button>
-            </div>
-          `;
+          
+          const actionsDiv = document.createElement("div");
+          actionsDiv.className = "actions-cell";
+          actionsDiv.style.justifyContent = "center";
+          
+          const btnEdit = document.createElement("button");
+          btnEdit.className = "btn-icon edit";
+          btnEdit.title = "Edit";
+          btnEdit.innerHTML = `<span class="material-symbols-outlined">edit</span>`;
+          btnEdit.addEventListener("click", () => editItem(row.ID));
+          
+          const btnDelete = document.createElement("button");
+          btnDelete.className = "btn-icon delete";
+          btnDelete.title = "Hapus";
+          btnDelete.innerHTML = `<span class="material-symbols-outlined">delete</span>`;
+          btnDelete.addEventListener("click", () => deleteItem(row.ID));
+          
+          actionsDiv.appendChild(btnEdit);
+          actionsDiv.appendChild(btnDelete);
+          tdActions.appendChild(actionsDiv);
           tr.appendChild(tdActions);
         }
         tableBody.appendChild(tr);
@@ -2051,7 +2061,11 @@
             })
             .withFailureHandler(err => {
               showToast(`Gagal memuat data dependensi: ${dep}`, "error");
+              loaded++;
               showLoading(false);
+              if (loaded === dependencies.length) {
+                callback();
+              }
             })
             .readData(dep);
         } else {
@@ -2066,7 +2080,11 @@
             })
             .catch(err => {
               showToast(`Gagal memuat data dependensi: ${dep}`, "error");
+              loaded++;
               showLoading(false);
+              if (loaded === dependencies.length) {
+                callback();
+              }
             });
         }
       });
@@ -2086,7 +2104,7 @@
 
     // Open Modal form to edit existing item
     function editItem(id) {
-      const item = App.data.find(row => row.ID === id);
+      const item = App.data.find(row => String(row.ID) === String(id));
       if (!item) {
         showToast("Item tidak ditemukan", "error");
         return;
@@ -2366,6 +2384,7 @@
         if (App.editId) {
           google.script.run
             .withSuccessHandler(res => {
+              showLoading(false);
               showToast("Data berhasil diperbarui!", "success");
               closeModal();
               loadTableData();
@@ -2378,6 +2397,7 @@
         } else {
           google.script.run
             .withSuccessHandler(res => {
+              showLoading(false);
               showToast("Data berhasil ditambahkan!", "success");
               closeModal();
               loadTableData();
@@ -2392,6 +2412,7 @@
         if (App.editId) {
           callApi("updateData", { sheetName: schema.sheet, id: App.editId, item: payload })
             .then(() => {
+              showLoading(false);
               showToast("Data berhasil diperbarui!", "success");
               closeModal();
               loadTableData();
@@ -2403,6 +2424,7 @@
         } else {
           callApi("addData", { sheetName: schema.sheet, item: payload })
             .then(() => {
+              showLoading(false);
               showToast("Data berhasil ditambahkan!", "success");
               closeModal();
               loadTableData();
@@ -2427,6 +2449,7 @@
       if (typeof google !== "undefined" && google.script) {
         google.script.run
           .withSuccessHandler(res => {
+            showLoading(false);
             showToast("Data berhasil dihapus!", "success");
             loadTableData();
           })
@@ -2438,6 +2461,7 @@
       } else {
         callApi("deleteData", { sheetName: schema.sheet, id: id })
           .then(() => {
+            showLoading(false);
             showToast("Data berhasil dihapus!", "success");
             loadTableData();
           })
